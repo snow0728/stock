@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小小股神：80條情報現實模擬版 (含基金系統)</title>
+    <title>小小股神：80條情報現實模擬版 (寬螢幕優化版)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -13,60 +13,68 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .game-container { background: white; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 1000px; overflow: hidden; border: 8px solid #dcdde1; }
+        
+        /* 調整1：加寬整體最大寬度到 1300px */
+        .game-container { background: white; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 1300px; overflow: hidden; border: 8px solid #dcdde1; }
         
         .news-ticker { background: #2f3542; color: #ffffff; height: 110px; overflow: hidden; position: relative; display: flex; align-items: center; }
         .news-label { height: 100%; background: #e67e22; color: white; padding: 0 20px; z-index: 10; font-weight: 900; display: flex; align-items: center; font-size: 18px; box-shadow: 5px 0 15px rgba(0,0,0,0.3); text-align: center; width: 120px;}
         .news-window { flex-grow: 1; height: 100%; position: relative; padding: 10px 20px; }
         .news-content { 
             position: absolute; width: 100%; 
-            display: flex; flex-direction: column; gap: 5px;
-            animation: scrollUpGroup 5s cubic-bezier(0.23, 1, 0.32, 1) infinite; 
+            display: flex; flex-direction: column; gap: 8px;
         }
-        .news-item { font-size: 14px; font-weight: bold; color: #ecf0f1; border-left: 3px solid #e67e22; padding-left: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .news-item { font-size: 20px; font-weight: bold; color: #ecf0f1; border-left: 4px solid #e67e22; padding-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
 
-        @keyframes scrollUpGroup { 
-            0% { transform: translateY(120px); opacity: 0; } 
-            10% { transform: translateY(0); opacity: 1; } 
-            90% { transform: translateY(0); opacity: 1; } 
-            100% { transform: translateY(-120px); opacity: 0; } 
+        @keyframes slideIn { 
+            0% { transform: translateY(80px); opacity: 0; } 
+            100% { transform: translateY(0); opacity: 1; } 
         }
 
-        .main-p { padding: 20px 25px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        /* 改為 5 個欄位來容納基金 */
-        .asset-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px; }
-        .card { background: #f1f2f6; padding: 12px; border-radius: 20px; text-align: center; }
-        .card-label { font-size: 11px; color: #747d8c; margin-bottom: 5px; font-weight: bold; }
-        .card-val { font-size: 17px; font-weight: 900; color: #2f3542; }
+        .main-p { padding: 25px 35px; } /* 稍微增加內距讓畫面更透氣 */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .asset-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 20px; }
+        .card { background: #f1f2f6; padding: 15px; border-radius: 20px; text-align: center; }
+        .card-label { font-size: 12px; color: #747d8c; margin-bottom: 5px; font-weight: bold; }
+        .card-val { font-size: 20px; font-weight: 900; color: #2f3542; }
 
-        .market-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
-        .stock-list { display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
-        .stock-item { background: white; border: 4px solid #f1f2f6; padding: 10px 15px; border-radius: 18px; cursor: pointer; transition: 0.2s; position: relative; }
+        /* 調整2：選股列表區塊加寬到 320px */
+        .market-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; }
+        /* 調整3：拉高選單最大高度以配合寬螢幕 */
+        .stock-list { display: flex; flex-direction: column; gap: 10px; max-height: 520px; overflow-y: auto; padding-right: 5px; }
+        .stock-item { background: white; border: 4px solid #f1f2f6; padding: 12px 18px; border-radius: 18px; cursor: pointer; transition: 0.2s; position: relative; }
         .stock-item.active { border-color: var(--primary); background: #e1f5fe; }
         
         .limit-up { background: #ffebeb !important; border-color: var(--up-color) !important; }
         .limit-down { background: #e0f2f1 !important; border-color: var(--down-color) !important; }
 
-        .badge-row { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
-        .hold-badge { background: #57606f; color: white; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; }
-        .profit-badge { padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; color: white; }
+        .badge-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+        .hold-badge { background: #57606f; color: white; padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; }
+        .profit-badge { padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; color: white; }
 
-        .price-big { font-size: 45px; font-weight: 900; margin-bottom: 5px; line-height: 1; }
-        .chart-box { height: 180px; background: white; margin-bottom: 15px; }
-        .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .b-btn { padding: 15px; border: none; border-radius: 20px; font-size: 20px; font-weight: 900; cursor: pointer; color: white; transition: 0.2s; }
+        .price-big { font-size: 55px; font-weight: 900; margin-bottom: 5px; line-height: 1; }
+        
+        /* 調整4：圖表高度拉高，比例更好看 */
+        .chart-box { height: 240px; background: white; margin-bottom: 20px; }
+        
+        /* 交易控制區塊 */
+        .trade-controls { background: #f1f2f6; padding: 12px 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .b-btn { padding: 15px; border: none; border-radius: 15px; font-size: 22px; font-weight: 900; cursor: pointer; color: white; transition: 0.2s; }
         .b-buy { background: var(--up-color); }
         .b-sell { background: var(--down-color); }
 
-        /* 銀行與基金控制區 */
-        .op-area { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .bank-area, .fund-area { padding: 12px; border-radius: 20px; display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 14px; }
+        /* 調整5：銀行、基金、打工排成同一排 (3欄) */
+        .op-area { margin-top: 25px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .bank-area, .fund-area, .work-area { padding: 15px; border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold; font-size: 15px; }
         .bank-area { background: #dfe4ea; }
         .fund-area { background: #f8efba; }
-        .op-btn { padding: 5px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; border:none; color: white; }
+        .work-area { background: #ffecb3; font-size: 16px; }
         
-        input[type="number"] { width: 80px; padding: 5px; border-radius: 8px; border: 1px solid #ccc; font-weight: bold; }
+        .op-btn { padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; border:none; color: white; transition: 0.2s; }
+        .op-btn:hover { filter: brightness(1.1); }
+        
+        input[type="number"] { width: 85px; padding: 6px; border-radius: 8px; border: 1px solid #ccc; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -82,18 +90,18 @@
         <div class="main-p">
             <div class="header">
                 <div>
-                    <h2 style="color: var(--primary)">小小股神</h2>
-                    <p id="timer" style="color: #ff4757; font-weight: bold;">距離行情實現：15秒</p>
+                    <h2 style="color: var(--primary); font-size: 28px;">小小股神</h2>
+                    <p id="timer" style="color: #ff4757; font-weight: bold; font-size: 16px; margin-top: 5px;">距離行情實現：15秒</p>
                 </div>
                 <div style="text-align: right">
-                    <div class="card-label">總資產淨值</div>
-                    <div class="card-val" id="total" style="font-size: 28px; color: var(--primary)">$10,000</div>
+                    <div class="card-label" style="font-size: 14px;">總資產淨值</div>
+                    <div class="card-val" id="total" style="font-size: 36px; color: var(--primary)">$10,000</div>
                 </div>
             </div>
 
             <div class="asset-grid">
                 <div class="card"><div class="card-label">現金 (可用)</div><div class="card-val" id="cash" style="color: var(--up-color)">$10,000</div></div>
-                <div class="card"><div class="card-label">銀行存款 (0.2%息)</div><div class="card-val" id="bank" style="color: #2ed573">$0</div></div>
+                <div class="card"><div class="card-label">銀行存款 (2%息)</div><div class="card-val" id="bank" style="color: #2ed573">$0</div></div>
                 <div class="card"><div class="card-label">自選股票部位</div><div class="card-val" id="stockValue">$0</div></div>
                 <div class="card" style="background:#fff9e6"><div class="card-label">加密資產</div><div class="card-val" id="cryptoValue" style="color: var(--crypto-color)">$0</div></div>
                 <div class="card" style="background:#ffeaa7"><div class="card-label">大盤基金 (自動)</div><div class="card-val" id="fundValue" style="color: var(--fund-color)">$0</div></div>
@@ -103,16 +111,25 @@
                 <div class="stock-list" id="stockList"></div>
                 <div class="display-area">
                     <div style="display:flex; justify-content:space-between; align-items: flex-end; margin-bottom: 5px;">
-                        <span id="curName" style="font-weight: bold; color: #747d8c;">-</span>
+                        <span id="curName" style="font-weight: bold; color: #747d8c; font-size: 18px;">-</span>
                         <div style="text-align: right;">
-                            <div id="curInventory" style="color: var(--primary); font-weight: 900; font-size: 16px;">持有：0</div>
-                            <div id="curProfit" style="font-weight: bold; font-size: 14px; color: #747d8c;">淨收益：$0</div>
+                            <div id="curInventory" style="color: var(--primary); font-weight: 900; font-size: 18px;">持有：0</div>
+                            <div id="curProfit" style="font-weight: bold; font-size: 15px; color: #747d8c; margin-top: 2px;">淨收益：$0</div>
                         </div>
                     </div>
                     <div class="price-big" id="curPrice">$0</div>
-                    <div id="curChange" style="font-weight: bold; font-size: 18px; margin-bottom: 5px;">+0.00%</div>
+                    <div id="curChange" style="font-weight: bold; font-size: 22px; margin-bottom: 10px;">+0.00%</div>
                     
                     <div class="chart-box"><canvas id="mainChart"></canvas></div>
+
+                    <div class="trade-controls">
+                        <span style="font-weight: 900; color: #2f3542; font-size: 16px;">交易數量設定：</span>
+                        <div style="display:flex; gap: 10px; align-items: center;">
+                            <button class="op-btn" style="background: #a4b0be; padding: 8px 12px;" onclick="setTradeAmt('max_buy')">最大買</button>
+                            <input type="number" id="tradeAmt" value="1" min="1" style="width: 80px; text-align: center; font-size: 18px;">
+                            <button class="op-btn" style="background: #a4b0be; padding: 8px 12px;" onclick="setTradeAmt('max_sell')">全賣出</button>
+                        </div>
+                    </div>
 
                     <div class="btns">
                         <button class="b-btn b-buy" onclick="trade('buy')">買進</button>
@@ -125,16 +142,21 @@
                 <div class="bank-area">
                     🏦 銀行：<input type="number" id="bankAmt" value="1000" step="100">
                     <button class="op-btn" style="background: #2ed573;" onclick="bankOp('in')">存入</button>
-                    <button class="op-btn" style="background: #57606f;" onclick="bankOp('out')">領錢</button>
+                    <button class="op-btn" style="background: #57606f;" onclick="bankOp('out')">領回</button>
                 </div>
                 <div class="fund-area">
                     📈 基金：<input type="number" id="fundAmt" value="1000" step="100">
                     <button class="op-btn" style="background: var(--fund-color);" onclick="fundOp('in')">申購</button>
                     <button class="op-btn" style="background: #57606f;" onclick="fundOp('out')">贖回</button>
                 </div>
+                <div class="work-area">
+                    💼 打工賺錢：
+                    <button class="op-btn" style="background: #e1b12c; padding: 8px 25px; font-size: 16px;" onclick="workForMoney()">隨機賺 $1~$5</button>
+                </div>
             </div>
-            <div style="text-align: right; margin-top: 10px;">
-                <span id="msg" style="color: #57606f; font-size: 13px;">💡 情報準確率70%。基金會自動追蹤全市場平均績效！</span>
+            
+            <div style="text-align: right; margin-top: 15px;">
+                <span id="msg" style="color: #57606f; font-size: 14px; font-weight: bold;">💡 情報準確率70%。基金會自動追蹤全市場平均績效！</span>
             </div>
         </div>
     </div>
@@ -147,7 +169,6 @@
             { name: '快樂電動車 (EV)', basePrice: 100, vola: 0.05, drift: 0.002, color: '#78e08f', desc: '綠能運輸 (景氣)', type: 'stock', beta: 1.0 }
         ];
 
-         // 80 條優化情報 (影響順序：BTC, TSM, SpaceX, EV)
         const PREDICTIONS = [
             { t: "📈 大家都想買比特幣，價格像坐火箭一樣衝上去！", imp: [1.3, 1.0, 1.0, 1.0] },
             { t: "⚡ 晶片王做出史上最強晶片，全世界的手機都要找他買！", imp: [1.0, 1.25, 1.0, 1.0] },
@@ -230,13 +251,14 @@
             { t: "🧬 生物晶片應用於醫療領域，晶片王開拓新藍海。", imp: [1.0, 1.1, 1.0, 1.0] },
             { t: "🌌 火箭王：2030年前將送人類上火星！", imp: [1.0, 1.0, 1.15, 1.0] }
         ];
-        let cash = 10000, bank = 0, fundBalance = 0; // 新增 fundBalance
+        
+        let cash = 10000, bank = 0, fundBalance = 0; 
         let curIdx = 0, holdings = [0, 0, 0, 0], totalCosts = [0, 0, 0, 0];
         let priceHistories = STOCKS.map(s => Array(25).fill(s.basePrice));
         let timer = 15, chart, currentEvents = [];
         
         const STOCK_BUY_FEE = 0.001425, STOCK_SELL_TAX = 0.003, CRYPTO_FEE = 0.001;
-        const FUND_FEE = 0.0005; // 基金每次結算內扣 0.05% 管理費
+        const FUND_FEE = 0.0005; 
         const TRUTH_RATE = 0.7; 
 
         window.onload = () => { prepareNextEvents(); initChart(); updateUI(); setInterval(tick, 1000); };
@@ -250,8 +272,9 @@
                 currentEvents.push(pool.splice(idx, 1)[0]);
             }
             const box = document.getElementById('newsBox');
-            box.style.animation = 'none'; box.offsetHeight; 
-            box.style.animation = 'scrollUpGroup 5s cubic-bezier(0.23, 1, 0.32, 1) infinite';
+            box.style.animation = 'none'; 
+            box.offsetHeight; 
+            box.style.animation = 'slideIn 1.5s cubic-bezier(0.23, 1, 0.32, 1) forwards';
             box.innerHTML = currentEvents.map(ev => `<div class="news-item">${ev.t}</div>`).join('');
         }
 
@@ -263,7 +286,7 @@
 
         function applyMarketChanges() {
             const marketSentiment = (Math.random() - 0.45) * 0.012; 
-            let totalReturnRatio = 0; // 用來計算大盤平均回報
+            let totalReturnRatio = 0; 
 
             STOCKS.forEach((s, i) => {
                 const last = priceHistories[i][priceHistories[i].length - 1];
@@ -291,14 +314,11 @@
                 priceHistories[i].push(nextPrice);
                 if (priceHistories[i].length > 25) priceHistories[i].shift();
 
-                // 計算該資產的漲跌比例，加總給大盤
                 totalReturnRatio += (nextPrice / last);
             });
 
-            // 銀行利息 0.2%
-            if (bank > 0) bank *= 1.002;
+            if (bank > 0) bank *= 1.02;
 
-            // 基金自動結算：大盤平均報酬 * (1 - 管理費)
             if (fundBalance > 0) {
                 const avgReturn = totalReturnRatio / STOCKS.length;
                 fundBalance = fundBalance * avgReturn * (1 - FUND_FEE);
@@ -306,7 +326,7 @@
 
             prepareNextEvents(); 
             updateUI();
-            msg(`📢 結算完成！市場已反應消息（基金已自動化追蹤大盤）。`);
+            msg(`📢 結算完成！市場已反應消息。`);
         }
 
         function initChart() {
@@ -335,8 +355,11 @@
                 let limitClass = (s.type === 'stock' && rat >= 1.099) ? "limit-up" : (s.type === 'stock' && rat <= 0.901) ? "limit-down" : "";
                 const profitPercent = holdings[i] > 0 ? ((p * holdings[i] - totalCosts[i]) / totalCosts[i] * 100) : 0;
                 return `<div class="stock-item ${i === curIdx ? 'active' : ''} ${limitClass}" onclick="selectStock(${i})">
-                    <div style="font-size:10px; color:#999">${s.desc}</div>
-                    <div style="display:flex; justify-content:space-between;"><b>${s.name}</b><span>$${p.toFixed(1)}</span></div>
+                    <div style="font-size:12px; color:#999; margin-bottom: 3px;">${s.desc}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <b style="font-size: 16px;">${s.name}</b>
+                        <span style="font-size: 16px;">$${p.toFixed(1)}</span>
+                    </div>
                     <div class="badge-row">
                         ${holdings[i] > 0 ? `<span class="hold-badge">${holdings[i]} 單</span>` : ''}
                         ${holdings[i] > 0 ? `<span class="profit-badge" style="background:${profitPercent>=0?'#eb2f06':'#38ada9'}">${profitPercent>=0?'+':''}${profitPercent.toFixed(1)}%</span>` : ''}
@@ -363,7 +386,6 @@
             document.getElementById('cryptoValue').innerText = `$${cVal.toLocaleString(undefined,{maximumFractionDigits:0})}`;
             document.getElementById('fundValue').innerText = `$${fundBalance.toLocaleString(undefined,{maximumFractionDigits:0})}`;
             
-            // 總資產加入基金計算
             document.getElementById('total').innerText = `$${(cash + bank + sVal + cVal + fundBalance).toLocaleString(undefined,{maximumFractionDigits:0})}`;
             document.getElementById('cash').innerText = `$${cash.toLocaleString(undefined,{maximumFractionDigits:0})}`;
             document.getElementById('bank').innerText = `$${bank.toLocaleString(undefined,{maximumFractionDigits:0})}`;
@@ -374,19 +396,68 @@
             chart.update('none');
         }
 
-        function selectStock(i) { curIdx = i; updateUI(); }
+        function selectStock(i) { 
+            curIdx = i; 
+            document.getElementById('tradeAmt').value = 1; 
+            updateUI(); 
+        }
+
+        function setTradeAmt(mode) {
+            const s = STOCKS[curIdx];
+            const p = priceHistories[curIdx][priceHistories[curIdx].length - 1];
+            const feeRate = (s.type === 'crypto') ? CRYPTO_FEE : STOCK_BUY_FEE;
+
+            if (mode === 'max_buy') {
+                const unitCost = p * (1 + feeRate);
+                const maxQty = Math.floor(cash / unitCost);
+                document.getElementById('tradeAmt').value = maxQty > 0 ? maxQty : 0;
+            } else if (mode === 'max_sell') {
+                document.getElementById('tradeAmt').value = holdings[curIdx];
+            }
+        }
 
         function trade(type) {
-            const s = STOCKS[curIdx], p = priceHistories[curIdx][priceHistories[curIdx].length - 1];
+            const s = STOCKS[curIdx];
+            const p = priceHistories[curIdx][priceHistories[curIdx].length - 1];
+            let qty = parseInt(document.getElementById('tradeAmt').value);
+            
+            if (isNaN(qty) || qty <= 0) return;
+
+            const feeRate = (s.type === 'crypto') ? CRYPTO_FEE : STOCK_BUY_FEE;
+            const taxRate = (s.type === 'crypto') ? 0 : STOCK_SELL_TAX;
+
             if (type === 'buy') {
-                const fee = p * ((s.type === 'crypto') ? CRYPTO_FEE : STOCK_BUY_FEE);
-                if (cash >= p + fee) { cash -= (p + fee); holdings[curIdx]++; totalCosts[curIdx] += (p + fee); }
-            } else {
-                if (holdings[curIdx] > 0) {
-                    const fee = p * ((s.type === 'crypto') ? CRYPTO_FEE : STOCK_BUY_FEE);
-                    const tax = (s.type === 'crypto') ? 0 : p * STOCK_SELL_TAX;
-                    cash += (p - fee - tax); totalCosts[curIdx] -= (totalCosts[curIdx]/holdings[curIdx]); holdings[curIdx]--;
+                const unitCost = p * (1 + feeRate);
+                const maxQty = Math.floor(cash / unitCost);
+                if (qty > maxQty) {
+                    qty = maxQty;
+                    if (qty === 0) { msg("❌ 現金不足以買進任何單位！"); return; }
                 }
+                
+                const totalCost = unitCost * qty;
+                cash -= totalCost;
+                holdings[curIdx] += qty;
+                totalCosts[curIdx] += totalCost;
+                msg(`✅ 成功買進 ${qty} 單位 ${s.name}！`);
+                
+            } else if (type === 'sell') {
+                if (holdings[curIdx] === 0) { msg("❌ 庫存不足！"); return; }
+                if (qty > holdings[curIdx]) {
+                    qty = holdings[curIdx];
+                }
+                
+                const unitRevenue = p * (1 - feeRate - taxRate);
+                const totalRevenue = unitRevenue * qty;
+                
+                const avgCost = totalCosts[curIdx] / holdings[curIdx];
+                totalCosts[curIdx] -= avgCost * qty;
+                
+                cash += totalRevenue;
+                holdings[curIdx] -= qty;
+                
+                if (holdings[curIdx] === 0) totalCosts[curIdx] = 0;
+                
+                msg(`✅ 成功賣出 ${qty} 單位 ${s.name}！`);
             }
             updateUI();
         }
@@ -399,7 +470,6 @@
             updateUI();
         }
 
-        // 新增基金申購與贖回邏輯
         function fundOp(type) {
             const amt = parseInt(document.getElementById('fundAmt').value);
             if (isNaN(amt) || amt <= 0) return;
@@ -409,13 +479,19 @@
                 msg(`✅ 成功申購 $${amt} 大盤基金！系統將自動結算。`);
             }
             else if (type === 'out' && fundBalance > 0) { 
-                // 可以部分贖回，若贖回大於持有額度，則全數贖回
                 const withdrawAmt = Math.min(amt, fundBalance);
                 fundBalance -= withdrawAmt; 
                 cash += withdrawAmt; 
                 msg(`✅ 成功贖回 $${withdrawAmt.toFixed(0)} 基金至現金！`);
             }
             updateUI();
+        }
+
+        function workForMoney() {
+            const earn = Math.floor(Math.random() * 5) + 1;
+            cash += earn;
+            updateUI();
+            msg(`💼 辛苦打工，賺取了 $${earn}！`);
         }
 
         function msg(t) { document.getElementById('msg').innerText = t; }
