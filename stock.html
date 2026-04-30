@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小小股神：現實平衡進化版</title>
+    <title>小小股神：80條情報現實模擬版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -16,14 +16,14 @@
         .game-container { background: white; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 950px; overflow: hidden; border: 8px solid #dcdde1; }
         
         .news-ticker { background: #2f3542; color: #ffffff; height: 110px; overflow: hidden; position: relative; display: flex; align-items: center; }
-        .news-label { height: 100%; background: #2ed573; color: #2f3542; padding: 0 20px; z-index: 10; font-weight: 900; display: flex; align-items: center; font-size: 18px; box-shadow: 5px 0 15px rgba(0,0,0,0.3); text-align: center; width: 120px;}
+        .news-label { height: 100%; background: #e67e22; color: white; padding: 0 20px; z-index: 10; font-weight: 900; display: flex; align-items: center; font-size: 18px; box-shadow: 5px 0 15px rgba(0,0,0,0.3); text-align: center; width: 120px;}
         .news-window { flex-grow: 1; height: 100%; position: relative; padding: 10px 20px; }
         .news-content { 
             position: absolute; width: 100%; 
             display: flex; flex-direction: column; gap: 5px;
             animation: scrollUpGroup 5s cubic-bezier(0.23, 1, 0.32, 1) infinite; 
         }
-        .news-item { font-size: 14px; font-weight: bold; color: #70a1ff; border-left: 3px solid #2ed573; padding-left: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .news-item { font-size: 14px; font-weight: bold; color: #ecf0f1; border-left: 3px solid #e67e22; padding-left: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         @keyframes scrollUpGroup { 
             0% { transform: translateY(120px); opacity: 0; } 
@@ -41,10 +41,13 @@
 
         .market-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
         .stock-list { display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
-        .stock-item { background: white; border: 4px solid #f1f2f6; padding: 10px 15px; border-radius: 18px; cursor: pointer; transition: 0.2s; }
+        .stock-item { background: white; border: 4px solid #f1f2f6; padding: 10px 15px; border-radius: 18px; cursor: pointer; transition: 0.2s; position: relative; }
         .stock-item.active { border-color: var(--primary); background: #e1f5fe; }
         .stock-item.crypto-active { border-color: var(--crypto-color); background: #fff9e6; }
         
+        .limit-up { background: #ffebeb !important; border-color: var(--up-color) !important; }
+        .limit-down { background: #e0f2f1 !important; border-color: var(--down-color) !important; }
+
         .badge-row { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
         .hold-badge { background: #57606f; color: white; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; }
         .profit-badge { padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; color: white; }
@@ -63,7 +66,7 @@
 
     <div class="game-container">
         <div class="news-ticker">
-            <div class="news-label">📊 均衡<br>市場情報</div>
+            <div class="news-label">🚀 每日<br>觀點</div>
             <div class="news-window">
                 <div class="news-content" id="newsBox"></div>
             </div>
@@ -72,20 +75,20 @@
         <div class="main-p">
             <div class="header">
                 <div>
-                    <h2 style="color: var(--primary)">小小股神：現實趨勢版</h2>
+                    <h2 style="color: var(--primary)">小小股神：全能現實模擬版</h2>
                     <p id="timer" style="color: #ff4757; font-weight: bold;">距離行情實現：15秒</p>
                 </div>
                 <div style="text-align: right">
-                    <div class="card-label">總財產資產</div>
+                    <div class="card-label">總資產淨值</div>
                     <div class="card-val" id="total" style="font-size: 28px; color: var(--primary)">$10,000</div>
                 </div>
             </div>
 
             <div class="asset-grid">
-                <div class="card"><div class="card-label">現金</div><div class="card-val" id="cash" style="color: var(--up-color)">$10,000</div></div>
-                <div class="card"><div class="card-label">銀行存款</div><div class="card-val" id="bank" style="color: #2ed573">$0</div></div>
-                <div class="card"><div class="card-label">股票</div><div class="card-val" id="stockValue">$0</div></div>
-                <div class="card" style="background:#fff9e6"><div class="card-label">加密貨幣</div><div class="card-val" id="cryptoValue" style="color: var(--crypto-color)">$0</div></div>
+                <div class="card"><div class="card-label">現金 (可用)</div><div class="card-val" id="cash" style="color: var(--up-color)">$10,000</div></div>
+                <div class="card"><div class="card-label">銀行存款 (2%利息)</div><div class="card-val" id="bank" style="color: #2ed573">$0</div></div>
+                <div class="card"><div class="card-label">股票部位</div><div class="card-val" id="stockValue">$0</div></div>
+                <div class="card" style="background:#fff9e6"><div class="card-label">加密資產</div><div class="card-val" id="cryptoValue" style="color: var(--crypto-color)">$0</div></div>
             </div>
 
             <div class="market-grid">
@@ -95,7 +98,7 @@
                         <span id="curName" style="font-weight: bold; color: #747d8c;">-</span>
                         <div style="text-align: right;">
                             <div id="curInventory" style="color: var(--primary); font-weight: 900; font-size: 16px;">持有：0</div>
-                            <div id="curProfit" style="font-weight: bold; font-size: 14px; color: #747d8c;">收益：$0</div>
+                            <div id="curProfit" style="font-weight: bold; font-size: 14px; color: #747d8c;">淨收益：$0</div>
                         </div>
                     </div>
                     <div class="price-big" id="curPrice">$0</div>
@@ -111,84 +114,112 @@
             </div>
 
             <div class="bank-area">
-                🏦 銀行存款：<input type="number" id="bankAmt" value="1000" step="100" style="width: 80px; padding: 5px; border-radius: 8px; border:none;">
+                🏦 銀行：<input type="number" id="bankAmt" value="1000" step="100" style="width: 80px; padding: 5px; border-radius: 8px; border:none;">
                 <button onclick="bankOp('in')" style="padding: 5px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; border:none;">存入</button>
                 <button onclick="bankOp('out')" style="padding: 5px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; border:none;">領錢</button>
-                <span id="msg" style="margin-left: auto; color: #57606f; font-size: 13px;">比特幣波幅巨大，請謹慎操作！</span>
+                <span id="msg" style="margin-left: auto; color: #57606f; font-size: 13px;">💡 準確率 70%，若出錯將發生反向波動！</span>
             </div>
         </div>
     </div>
 
     <script>
         const STOCKS = [
-            { name: '比特幣 (BTC)', price: 5000, vola: 0.18, drift: 0.002, color: '#f39c12', desc: '數位黃金 (高風險/免手續費)', type: 'crypto' },
-            { name: '超級晶片王 (TSM)', price: 800, vola: 0.03, drift: 0.003, color: '#4a69bd', desc: '科技心臟 (穩健)', type: 'stock' },
-            { name: '飛天火箭王 (SpaceX)', price: 300, vola: 0.07, drift: 0.004, color: '#f6b93b', desc: '星際探索 (成長潛力)', type: 'stock' },
-            { name: '快樂電動車 (EV)', price: 100, vola: 0.05, drift: 0.001, color: '#78e08f', desc: '綠能未來 (震盪中)', type: 'stock' }
+            { name: '比特幣 (BTC)', basePrice: 5000, vola: 0.12, drift: 0.005, color: '#f39c12', desc: '數位黃金 (高波動)', type: 'crypto', beta: 0.8 },
+            { name: '超級晶片王 (TSM)', basePrice: 800, vola: 0.04, drift: 0.003, color: '#4a69bd', desc: '半導體權值 (穩健)', type: 'stock', beta: 1.5 },
+            { name: '飛天火箭王 (SpaceX)', basePrice: 300, vola: 0.07, drift: 0.004, color: '#f6b93b', desc: '航太領袖 (成長)', type: 'stock', beta: 1.2 },
+            { name: '快樂電動車 (EV)', basePrice: 100, vola: 0.05, drift: 0.002, color: '#78e08f', desc: '綠能運輸 (景氣)', type: 'stock', beta: 1.0 }
         ];
 
-        // 50 種情報定義，嚴格平衡漲跌數量
-        // 格式 [BTC, TSM, SpaceX, EV]
+        // 80 條優化情報 (影響順序：BTC, TSM, SpaceX, EV)
         const PREDICTIONS = [
-            // --- 上漲情報 (25項) ---
-            { t: "📈 比特幣現貨 ETF 獲准通過，機構資金瘋狂湧入！", imp: [1.4, 1.0, 1.0, 1.0] },
-            { t: "⚡ 晶片王成功量產 1奈米製程，性能震撼全球！", imp: [1.0, 1.3, 1.0, 1.0] },
-            { t: "🚀 火箭王完成火星往返測試，星際移民時代開啟！", imp: [1.0, 1.0, 1.4, 1.0] },
-            { t: "🔋 電動車固態電池能量產，里程焦慮成為歷史！", imp: [1.0, 1.0, 1.0, 1.3] },
-            { t: "💎 知名大亨宣佈將一半財產換成比特幣。 ", imp: [1.15, 1.0, 1.0, 1.0] },
-            { t: "🥇 晶片王包辦全球 AI 伺服器訂單，獲利翻倍！", imp: [1.0, 1.2, 1.0, 1.0] },
-            { t: "🔭 發現地外文明訊號，太空探索預算大增！", imp: [1.0, 1.0, 1.25, 1.0] },
-            { t: "🌱 政府宣佈未來三年買電動車全額免稅！", imp: [1.0, 1.0, 1.0, 1.25] },
-            { t: "🧱 比特幣『減半』完成，市場供應量大幅縮減！", imp: [1.25, 1.0, 1.0, 1.0] },
-            { t: "🤖 自動化機器人全面普及，晶片需求大爆發！", imp: [1.0, 1.15, 1.0, 1.0] },
-            { t: "📡 火箭王發射第 10000 顆衛星，全球無死角網路！", imp: [1.0, 1.05, 1.2, 1.0] },
-            { t: "🚘 電動車智慧駕駛系統通週安全審核，銷量暴增！", imp: [1.0, 1.0, 1.0, 1.2] },
-            { t: "🌍 全球主要國家宣佈降息，資金流向科技股與加密貨幣。", imp: [1.1, 1.1, 1.1, 1.1] },
-            { t: "🏬 大型超商宣佈接受比特幣支付。 ", imp: [1.12, 1.0, 1.0, 1.0] },
-            { t: "💡 全新冷核融合技術突破，電力成本近乎於零！", imp: [1.05, 1.1, 1.1, 1.25] },
-            { t: "📦 晶片物流效率提升，全球缺貨問題徹底解決。", imp: [1.0, 1.1, 1.0, 1.0] },
-            { t: "🎢 投資大師稱讚比特幣為『最好的避險資產』。", imp: [1.1, 1.0, 1.0, 1.0] },
-            { t: "🛸 火箭王宣佈降價，平民也能負擔太空旅行。", imp: [1.0, 1.0, 1.15, 1.0] },
-            { t: "📱 蘋果宣佈將與晶片王深度合作研發新晶片。", imp: [1.0, 1.15, 1.0, 1.0] },
-            { t: "🏰 某小國宣佈比特幣為第二法定貨幣。", imp: [1.2, 1.0, 1.0, 1.0] },
-            { t: "🏆 電動車贏得年度最佳安全獎，信譽大增。", imp: [1.0, 1.0, 1.0, 1.1] },
-            { t: "🛡️ 太空軍事合約簽訂，火箭王成為國防寵兒。", imp: [1.0, 1.0, 1.2, 1.0] },
-            { t: "🧬 生物科技結合晶片開發成功，訂單湧入。", imp: [1.0, 1.12, 1.0, 1.0] },
-            { t: "🛰️ 比特幣衛星錢包研發成功，沒網路也能交易！", imp: [1.1, 1.0, 1.05, 1.0] },
-            { t: "🎡 消費者信心指數創十年新高，全體市場走揚。", imp: [1.05, 1.05, 1.05, 1.05] },
-
-            // --- 下跌情報 (25項) ---
-            { t: "⚠️ 某大交易所突發倒閉，比特幣出現拋售潮！", imp: [0.65, 1.0, 1.0, 1.0] },
-            { t: "🔥 晶片王主要廠區發生火災，產能預計中斷三個月。", imp: [1.0, 0.75, 1.0, 0.9] },
-            { t: "💥 火箭發射過程中不幸爆炸，多顆昂貴衛星毀損。", imp: [1.0, 0.95, 0.75, 1.0] },
-            { t: "🛑 全球宣佈對鋰電池課徵額外環保稅。 ", imp: [1.0, 1.0, 1.0, 0.8] },
-            { t: "⚖️ 政府宣佈嚴格監管加密貨幣，洗錢防治法趨嚴。", imp: [0.8, 1.0, 1.0, 1.0] },
-            { t: "💻 競爭對手開發出更廉價的晶片架構，晶片王優勢不在。", imp: [1.0, 0.85, 1.0, 1.0] },
-            { t: "☄️ 太空垃圾問題失控，政府宣佈暫停所有發射。 ", imp: [1.0, 0.95, 0.8, 1.0] },
-            { t: "⚠️ 電動車傳出電池自燃事故，數萬輛車緊急召回。", imp: [1.0, 1.0, 1.0, 0.75] },
-            { t: "👾 頂尖駭客聲稱掌握比特幣底层漏洞。 ", imp: [0.75, 1.0, 1.0, 1.0] },
-            { t: "📦 由於戰爭影響，晶片關鍵材料氖氣供應中斷。", imp: [1.0, 0.88, 0.95, 0.95] },
-            { t: "🛑 多國央行宣佈升息，資金撤出高風險市場。", imp: [0.9, 0.92, 0.9, 0.9] },
-            { t: "⛈️ 洪水淹沒電動車生產基地，交貨期大幅延遲。", imp: [1.0, 1.0, 1.0, 0.85] },
-            { t: "📉 經濟數據疲軟，市場擔憂長期通縮來臨。", imp: [0.9, 0.9, 0.9, 0.9] },
-            { t: "📵 全球大規模網路故障，比特幣無法正常交易。", imp: [0.85, 0.98, 0.98, 1.0] },
-            { t: "🍭 電動車競爭陷入惡性價格戰，獲利空間壓縮。", imp: [1.0, 1.0, 1.0, 0.85] },
-            { t: "🛠️ 火箭王發現零件設計瑕疵，需停工大檢修。", imp: [1.0, 1.0, 0.88, 1.0] },
-            { t: "📑 某大國宣佈將晶片王列入貿易限制名單。", imp: [1.0, 0.8, 1.0, 1.0] },
-            { t: "💸 比特幣早期錢包甦醒，大戶開始拋售。 ", imp: [0.88, 1.0, 1.0, 1.0] },
-            { t: "🦆 競爭對手研發出超低價載人氣球，衝擊太空旅遊。", imp: [1.0, 1.0, 0.9, 1.0] },
-            { t: "🍬 晶片生產瑕疵率提高，客戶信心動搖。 ", imp: [1.0, 0.92, 1.0, 1.0] },
-            { t: "🔋 發現鋰電池在低溫下效能極差，北方國家銷量慘跌。", imp: [1.0, 1.0, 1.0, 0.88] },
-            { t: "🥊 火箭王被控壟斷市場，面臨鉅額罰款。 ", imp: [1.0, 1.0, 0.9, 1.0] },
-            { t: "📉 網路上流傳『比特幣已死』的傳聞，散戶恐慌。", imp: [0.92, 1.0, 1.0, 1.0] },
-            { t: "🌦️ 氣象預報顯示極端氣候頻傳，不利於科技生產。", imp: [0.95, 0.95, 0.95, 0.95] },
-            { t: "💤 全球交易熱度下降，市場進入漫長寒冬。 ", imp: [0.98, 0.98, 0.98, 0.98] }
+            { t: "📈 大家都想買比特幣，價格像坐火箭一樣衝上去！", imp: [1.3, 1.0, 1.0, 1.0] },
+            { t: "⚡ 晶片王做出史上最強晶片，全世界的手機都要找他買！", imp: [1.0, 1.25, 1.0, 1.0] },
+            { t: "🚀 火箭王成功飛到火星！人類以後可以去外星玩了。", imp: [1.0, 1.0, 1.35, 1.0] },
+            { t: "🔋 超神電池發明了！電動車充一次電可以開一年。", imp: [1.0, 1.0, 1.0, 1.25] },
+            { t: "⚠️ 驚！大型比特幣銀行倒閉，大家趕快撤資。", imp: [0.7, 1.0, 1.0, 1.0] },
+            { t: "🔥 晶片王工廠意外停電！產量大幅下滑。", imp: [1.0, 0.8, 1.0, 1.0] },
+            { t: "🛑 央行升息，市場資金回流銀行，股市普跌。", imp: [0.92, 0.9, 0.92, 0.9] },
+            { t: "💎 全球咖啡廳宣布支援比特幣支付！", imp: [1.2, 1.0, 1.0, 1.0] },
+            { t: "📉 電腦銷售慘淡，晶片王庫存積壓。", imp: [1.0, 0.88, 1.0, 1.0] },
+            { t: "🛰️ 火箭王獲得軍方巨額合約，發射百枚衛星！", imp: [1.0, 1.0, 1.25, 1.0] },
+            { t: "🌱 環保法規過關，燃油車將分階段停售。", imp: [1.0, 1.0, 1.0, 1.18] },
+            { t: "💥 比特幣協議發現重大漏洞，駭客蠢蠢欲動。", imp: [0.75, 1.0, 1.0, 1.0] },
+            { t: "🏢 政府補助晶片研發，晶片王獲得百億獎金。", imp: [1.0, 1.15, 1.0, 1.0] },
+            { t: "🌌 太空旅遊機票預約爆滿，火箭王財報亮眼。", imp: [1.0, 1.0, 1.2, 1.0] },
+            { t: "⛓️ 電池原料鋰礦價格暴漲，電動車成本提高。", imp: [1.0, 1.0, 1.0, 0.85] },
+            { t: "🏦 跨國大銀行認證比特幣為「優質資產」。", imp: [1.15, 1.0, 1.0, 1.0] },
+            { t: "💻 新型AI運算量爆增，對高效能晶片需求無上限。", imp: [1.0, 1.22, 1.0, 1.0] },
+            { t: "🌠 火箭王在月球發現珍稀資源，價值連城。", imp: [1.0, 1.0, 1.3, 1.0] },
+            { t: "🚗 全自動駕駛正式開放，電動車銷量倍增。", imp: [1.0, 1.0, 1.0, 1.2] },
+            { t: "💸 通膨數據爆表，投資者縮減風險資產。", imp: [0.9, 0.9, 0.9, 0.9] },
+            { t: "⛏️ 歐盟禁止高耗能挖礦，比特幣全網算力下降。", imp: [0.82, 1.0, 1.0, 1.0] },
+            { t: "🛠️ 晶片王設備維修周期延長，營收恐不如預期。", imp: [1.0, 0.92, 1.0, 1.0] },
+            { t: "🧨 火箭發射意外失敗，損失數枚昂貴衛星。", imp: [1.0, 1.0, 0.75, 1.0] },
+            { t: "🔋 固態電池研發突破，電動車續航力翻倍。", imp: [1.0, 1.0, 1.0, 1.25] },
+            { t: "🌎 全球經濟復甦，海運與貿易需求大漲。", imp: [1.05, 1.05, 1.1, 1.05] },
+            { t: "🏴‍☠️ 匿名鯨魚倒貨千顆比特幣，引發市場恐慌。", imp: [0.9, 1.0, 1.0, 1.0] },
+            { t: "🍎 科技巨頭傳出要自研晶片，晶片王訂單堪憂。", imp: [1.0, 0.85, 1.0, 1.0] },
+            { t: "📡 火箭王星鏈計畫覆蓋全球，用戶數突破千萬。", imp: [1.0, 1.0, 1.15, 1.0] },
+            { t: "❄️ 寒流來襲導致多地停電，電動車充電成問題。", imp: [1.0, 1.0, 1.0, 0.88] },
+            { t: "📊 以後繳稅也能用比特幣？多國政府進行評估。", imp: [1.12, 1.0, 1.0, 1.0] },
+            { t: "🖥️ 超級電腦競賽開跑，各國搶購頂級晶片。", imp: [1.0, 1.1, 1.0, 1.0] },
+            { t: "👨‍🚀 史上第一位平民太空漫步成功，由火箭王達成！", imp: [1.0, 1.0, 1.1, 1.0] },
+            { t: "🛍️ 知名量販店採購電動貨車，訂單量創新高。", imp: [1.0, 1.0, 1.0, 1.12] },
+            { t: "🗳️ 大選結果揭曉，親加密貨幣官員上任。", imp: [1.1, 1.0, 1.0, 1.0] },
+            { t: "💧 工業用水荒，晶片製造進度受阻。", imp: [1.0, 0.94, 1.0, 1.0] },
+            { t: "🔭 火箭王計畫建立火星殖民地，長期願景動人。", imp: [1.0, 1.0, 1.08, 1.0] },
+            { t: "🛑 各國關稅壁壘升起，電動車出口成本大增。", imp: [1.0, 1.0, 1.0, 0.85] },
+            { t: "🤖 工廠導入全AI管理，晶片王效率提升50%。", imp: [1.0, 1.12, 1.0, 1.0] },
+            { t: "🔐 加密錢包技術進步，比特幣被盜風險降至零。", imp: [1.1, 1.0, 1.0, 1.0] },
+            { t: "🏗️ 火箭王太空站正式開工，將成為地球外最大基地。", imp: [1.0, 1.0, 1.15, 1.0] },
+            { t: "🏭 報廢電池回收技術成熟，環保人士轉向支持。", imp: [1.0, 1.0, 1.0, 1.1] },
+            { t: "📈 聯準會停止升息，市場信心大幅回升。", imp: [1.05, 1.05, 1.05, 1.05] },
+            { t: "🪙 神秘大戶加碼存入，比特幣供給變得稀缺。", imp: [1.14, 1.0, 1.0, 1.0] },
+            { t: "⚙️ 奈米技術突破，晶片效能再次突破極限。", imp: [1.0, 1.15, 1.0, 1.0] },
+            { t: "🚀 火箭回收成本再降，商用發射利潤率暴漲。", imp: [1.0, 1.0, 1.2, 1.0] },
+            { t: "⛈️ 強颱襲擊電動車供應鏈，部分工廠毀損。", imp: [1.0, 1.0, 1.0, 0.8] },
+            { t: "🎨 NFT熱潮再起，比特幣網路交易手續費爆表。", imp: [1.06, 1.0, 1.0, 1.0] },
+            { t: "👨‍🔬 新型散熱材料問世，晶片過熱問題徹底解決。", imp: [1.0, 1.1, 1.0, 1.0] },
+            { t: "🎫 太空旅行價格降至平民水準，預約排到十年後。", imp: [1.0, 1.0, 1.15, 1.0] },
+            { t: "🔌 國道充電站全數完工，解決里程焦慮。", imp: [1.0, 1.0, 1.0, 1.1] },
+            { t: "📉 市場過熱，專業分析師警告泡沫風險。", imp: [0.95, 0.95, 0.95, 0.95] },
+            { t: "💱 國際石油結算考慮引入比特幣作為中間貨幣。", imp: [1.25, 1.0, 1.0, 1.0] },
+            { t: "💥 競爭對手發布超低價晶片，威脅晶片王地位。", imp: [1.0, 0.85, 1.0, 1.0] },
+            { t: "🛰️ 衛星軌道過於擁擠，聯合國要求暫緩發射。", imp: [1.0, 1.0, 0.92, 1.0] },
+            { t: "🚒 媒體報導電動車起火事件，引發大眾疑慮。", imp: [1.0, 1.0, 1.0, 0.75] },
+            { t: "🎰 知名連鎖遊戲導入虛擬幣幣，玩家人數創新高。", imp: [1.08, 1.0, 1.0, 1.0] },
+            { t: "🖥️ 元宇宙熱潮再起，對渲染晶片需求翻倍。", imp: [1.0, 1.18, 1.0, 1.0] },
+            { t: "🚀 火箭王研發超重型運載器，載重能力提升三倍。", imp: [1.0, 1.0, 1.15, 1.0] },
+            { t: "🔋 氫能電池異軍突起，電動車地位受挑戰。", imp: [1.0, 1.0, 1.0, 0.9] },
+            { t: "📉 全球人口負成長，勞動力短缺影響生產力。", imp: [0.95, 0.95, 0.95, 0.95] },
+            { t: "🪙 以色列宣布將比特幣納入官方儲備。", imp: [1.12, 1.0, 1.0, 1.0] },
+            { t: "🧱 砂石原料價格暴漲，蓋晶片廠成本倍增。", imp: [1.0, 0.94, 1.0, 1.0] },
+            { t: "🌠 火箭王在土衛六發現液態水跡象！", imp: [1.0, 1.0, 1.1, 1.0] },
+            { t: "⛽ 油價跌至十年新低，民眾不急著換電動車。", imp: [1.0, 1.0, 1.0, 0.82] },
+            { t: "🏦 退休基金宣布提撥5%資金投資比特幣。", imp: [1.18, 1.0, 1.0, 1.0] },
+            { t: "👨‍💻 頂尖軟體工程師集體跳槽競爭對手。", imp: [1.0, 0.88, 1.0, 1.0] },
+            { t: "📡 火箭王計畫開發月球基地網路，前景廣闊。", imp: [1.0, 1.0, 1.08, 1.0] },
+            { t: "🚗 城市規劃將全面禁止內燃機汽車進入中心區。", imp: [1.0, 1.0, 1.0, 1.15] },
+            { t: "📈 消費者支出數據強勁，零售業景氣大好。", imp: [1.02, 1.02, 1.02, 1.02] },
+            { t: "🛡️ 比特幣避險價值顯現，局勢不穩時反向大漲。", imp: [1.1, 1.0, 1.0, 1.0] },
+            { t: "📉 晶片王財報預警，成長速度放緩。", imp: [1.0, 0.88, 1.0, 1.0] },
+            { t: "🌪️ 太空垃圾撞擊火箭王通信衛星，通訊中斷。", imp: [1.0, 1.0, 0.9, 1.0] },
+            { t: "⚡ 只需三分鐘即可充飽電！新型充電樁研發成功。", imp: [1.0, 1.0, 1.0, 1.25] },
+            { t: "💰 某大國央行拋售比特幣儲備，價格重挫。", imp: [0.78, 1.0, 1.0, 1.0] },
+            { t: "📉 全球筆電需求飽和，晶片訂單遭砍。", imp: [1.0, 0.9, 1.0, 1.0] },
+            { t: "🛰️ 火箭王星鏈系統開始支援跨星際通訊測試。", imp: [1.0, 1.0, 1.12, 1.0] },
+            { t: "🚗 鄰國電動車補貼突然取消，外銷受挫。", imp: [1.0, 1.0, 1.0, 0.92] },
+            { t: "🏦 比特幣ETF在多國交易所上市交易。", imp: [1.15, 1.0, 1.0, 1.0] },
+            { t: "🧬 生物晶片應用於醫療領域，晶片王開拓新藍海。", imp: [1.0, 1.1, 1.0, 1.0] },
+            { t: "🌌 火箭王：2030年前將送人類上火星！", imp: [1.0, 1.0, 1.15, 1.0] }
         ];
 
         let cash = 10000, bank = 0, curIdx = 0, holdings = [0, 0, 0, 0], totalCosts = [0, 0, 0, 0];
-        let priceHistories = STOCKS.map(s => Array(25).fill(s.price));
+        let priceHistories = STOCKS.map(s => Array(25).fill(s.basePrice));
         let timer = 15, chart, currentEvents = [];
-        const STOCK_FEE = 0.01;
+        
+        const STOCK_BUY_FEE = 0.001425, STOCK_SELL_TAX = 0.003, CRYPTO_FEE = 0.001;
+        const TRUTH_RATE = 0.7; // 正確率 70%
 
         window.onload = () => { prepareNextEvents(); initChart(); updateUI(); setInterval(tick, 1000); };
 
@@ -212,22 +243,46 @@
         }
 
         function applyMarketChanges() {
+            const marketSentiment = (Math.random() - 0.45) * 0.012; 
+
             STOCKS.forEach((s, i) => {
                 const last = priceHistories[i][priceHistories[i].length - 1];
-                // 基礎隨機波動 + 長期趨勢偏移
-                let move = Math.exp(s.drift + s.vola * (Math.random() - 0.5) * 2);
-                // 累計情報影響
-                currentEvents.forEach(ev => { move *= ev.imp[i]; });
+                let eventImpact = 1.0;
+
+                currentEvents.forEach(ev => {
+                    const isTrue = Math.random() < TRUTH_RATE;
+                    if (isTrue) {
+                        eventImpact *= ev.imp[i]; 
+                    } else {
+                        // 30% 反轉機制：原漲則跌，原跌則漲
+                        if (ev.imp[i] !== 1.0) {
+                            eventImpact *= (1.0 / ev.imp[i]); 
+                        }
+                    }
+                });
+
+                const meanReversion = (s.basePrice - last) / s.basePrice * 0.01;
+                let volatility = s.vola * (Math.random() - 0.5) * 2;
+                let changeRate = Math.exp(s.drift + meanReversion + (marketSentiment * s.beta) + volatility);
                 
-                let nextPrice = last * move;
-                // 防止歸零
+                let nextPrice = last * changeRate * eventImpact;
+
+                // 10% 漲跌停限制 (台股模擬)
+                if (s.type === 'stock') {
+                    const ratio = nextPrice / last;
+                    if (ratio > 1.1) nextPrice = last * 1.1; 
+                    if (ratio < 0.9) nextPrice = last * 0.9;
+                }
+
                 if (nextPrice < 1) nextPrice = 1;
-                
                 priceHistories[i].push(nextPrice);
                 if (priceHistories[i].length > 25) priceHistories[i].shift();
             });
-            if (bank > 0) bank *= 1.02; // 銀行固定利息
-            prepareNextEvents(); updateUI();
+
+            if (bank > 0) bank *= 1.002;
+            prepareNextEvents(); 
+            updateUI();
+            msg(`📢 結算完成！市場已反應消息（包含反轉風險）。`);
         }
 
         function initChart() {
@@ -237,9 +292,8 @@
                 data: { labels: Array(25).fill(''), datasets: [{ data: priceHistories[curIdx], borderColor: STOCKS[curIdx].color, borderWidth: 5, pointRadius: 0, tension: 0.4, fill: true, backgroundColor: STOCKS[curIdx].color + '22' }] },
                 options: { 
                     responsive: true, maintainAspectRatio: false, 
-                    animation: { duration: 800 },
                     plugins: { legend: false }, 
-                    scales: { x: { display: false }, y: { position: 'right', grid: { color: '#f1f2f6' } } } 
+                    scales: { x: { display: false }, y: { position: 'right' } } 
                 }
             });
         }
@@ -252,34 +306,28 @@
 
             document.getElementById('stockList').innerHTML = STOCKS.map((s, i) => {
                 const p = priceHistories[i][priceHistories[i].length-1];
-                const profit = holdings[i] > 0 ? (p * holdings[i] - totalCosts[i]) : 0;
-                const profitPercent = holdings[i] > 0 ? (profit / totalCosts[i] * 100) : 0;
-                return `
-                <div class="stock-item ${i === curIdx ? (s.type==='crypto'?'crypto-active':'active') : ''}" onclick="selectStock(${i})">
+                const lp = priceHistories[i][priceHistories[i].length-2];
+                const rat = p / lp;
+                let limitClass = (s.type === 'stock' && rat >= 1.099) ? "limit-up" : (s.type === 'stock' && rat <= 0.901) ? "limit-down" : "";
+                const profitPercent = holdings[i] > 0 ? ((p * holdings[i] - totalCosts[i]) / totalCosts[i] * 100) : 0;
+                return `<div class="stock-item ${i === curIdx ? 'active' : ''} ${limitClass}" onclick="selectStock(${i})">
                     <div style="font-size:10px; color:#999">${s.desc}</div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <b>${s.name}</b>
-                        <span style="font-weight:900">$${p.toFixed(1)}</span>
-                    </div>
+                    <div style="display:flex; justify-content:space-between;"><b>${s.name}</b><span>$${p.toFixed(1)}</span></div>
                     <div class="badge-row">
-                        ${holdings[i] > 0 ? `<span class="hold-badge">${holdings[i].toFixed(0)} 單</span>` : ''}
-                        ${holdings[i] > 0 ? `<span class="profit-badge" style="background:${profit>=0?'var(--up-color)':'var(--down-color)'}">${profit>=0?'+':''}${profitPercent.toFixed(1)}%</span>` : ''}
+                        ${holdings[i] > 0 ? `<span class="hold-badge">${holdings[i]} 單</span>` : ''}
+                        ${holdings[i] > 0 ? `<span class="profit-badge" style="background:${profitPercent>=0?'#eb2f06':'#38ada9'}">${profitPercent>=0?'+':''}${profitPercent.toFixed(1)}%</span>` : ''}
                     </div>
                 </div>`;
             }).join('');
 
             document.getElementById('curPrice').innerText = `$${now.toFixed(1)}`;
             document.getElementById('curName').innerText = STOCKS[curIdx].name;
-            document.getElementById('curInventory').innerText = `持有：${holdings[curIdx].toFixed(0)}`;
-            
-            const currentProfit = holdings[curIdx] > 0 ? (now * holdings[curIdx] - totalCosts[curIdx]) : 0;
-            document.getElementById('curProfit').innerText = `淨收益：$${currentProfit.toFixed(0)}`;
-            document.getElementById('curProfit').style.color = currentProfit >= 0 ? 'var(--up-color)' : 'var(--down-color)';
-
+            document.getElementById('curInventory').innerText = `持有：${holdings[curIdx]}`;
+            const curVal = now * holdings[curIdx];
+            document.getElementById('curProfit').innerText = `淨收益：$${(holdings[curIdx] > 0 ? (curVal - totalCosts[curIdx]) : 0).toFixed(0)}`;
             const cEl = document.getElementById('curChange');
             cEl.innerText = `${change >= 0 ? '▲' : '▼'} ${Math.abs(change)}%`;
             cEl.style.color = change >= 0 ? 'var(--up-color)' : 'var(--down-color)';
-            document.getElementById('curPrice').style.color = change >= 0 ? 'var(--up-color)' : 'var(--down-color)';
 
             let sVal = 0, cVal = 0;
             STOCKS.forEach((s, i) => {
@@ -287,11 +335,11 @@
                 if(s.type === 'crypto') cVal += val; else sVal += val;
             });
 
-            document.getElementById('stockValue').innerText = `$${sVal.toLocaleString(undefined, {maximumFractionDigits:0})}`;
-            document.getElementById('cryptoValue').innerText = `$${cVal.toLocaleString(undefined, {maximumFractionDigits:0})}`;
-            document.getElementById('total').innerText = `$${(cash + bank + sVal + cVal).toLocaleString(undefined, {maximumFractionDigits:0})}`;
-            document.getElementById('cash').innerText = `$${cash.toLocaleString(undefined, {maximumFractionDigits:0})}`;
-            document.getElementById('bank').innerText = `$${bank.toLocaleString(undefined, {maximumFractionDigits:0})}`;
+            document.getElementById('stockValue').innerText = `$${sVal.toLocaleString(undefined,{maximumFractionDigits:0})}`;
+            document.getElementById('cryptoValue').innerText = `$${cVal.toLocaleString(undefined,{maximumFractionDigits:0})}`;
+            document.getElementById('total').innerText = `$${(cash + bank + sVal + cVal).toLocaleString(undefined,{maximumFractionDigits:0})}`;
+            document.getElementById('cash').innerText = `$${cash.toLocaleString(undefined,{maximumFractionDigits:0})}`;
+            document.getElementById('bank').innerText = `$${bank.toLocaleString(undefined,{maximumFractionDigits:0})}`;
 
             chart.data.datasets[0].data = history;
             chart.data.datasets[0].borderColor = STOCKS[curIdx].color;
@@ -301,32 +349,24 @@
         function selectStock(i) { curIdx = i; updateUI(); }
 
         function trade(type) {
-            const s = STOCKS[curIdx];
-            const p = priceHistories[curIdx][priceHistories[curIdx].length - 1];
-            const fee = s.type === 'crypto' ? 0 : p * STOCK_FEE;
-            
+            const s = STOCKS[curIdx], p = priceHistories[curIdx][priceHistories[curIdx].length - 1];
             if (type === 'buy') {
-                const totalNeed = p + fee;
-                if (cash >= totalNeed) { 
-                    cash -= totalNeed; holdings[curIdx]++; totalCosts[curIdx] += totalNeed;
-                    msg(`✅ 買入成功！${fee>0?`手續費 $${fee.toFixed(1)}` : '加密貨幣免手續費！'}`);
-                } else msg("😥 餘額不足以支付股價與手續費。");
+                const fee = p * ((s.type === 'crypto') ? CRYPTO_FEE : STOCK_BUY_FEE);
+                if (cash >= p + fee) { cash -= (p + fee); holdings[curIdx]++; totalCosts[curIdx] += (p + fee); }
             } else {
-                if (holdings[curIdx] > 0) { 
-                    const avgCost = totalCosts[curIdx] / holdings[curIdx];
-                    const receive = p - fee;
-                    cash += receive; holdings[curIdx]--; totalCosts[curIdx] -= avgCost;
-                    msg(`💰 賣出成功！入帳 $${receive.toFixed(1)}`);
-                } else msg("😮 您目前並未持有此項資產。");
+                if (holdings[curIdx] > 0) {
+                    const fee = p * ((s.type === 'crypto') ? CRYPTO_FEE : STOCK_BUY_FEE);
+                    const tax = (s.type === 'crypto') ? 0 : p * STOCK_SELL_TAX;
+                    cash += (p - fee - tax); totalCosts[curIdx] -= (totalCosts[curIdx]/holdings[curIdx]); holdings[curIdx]--;
+                }
             }
             updateUI();
         }
 
         function bankOp(type) {
             const amt = parseInt(document.getElementById('bankAmt').value);
-            if (isNaN(amt) || amt <= 0) return;
-            if (type === 'in' && cash >= amt) { cash -= amt; bank += amt; msg(`🏦 已將 $${amt} 轉入銀行存款。`); }
-            else if (type === 'out' && bank >= amt) { bank -= amt; cash += amt; msg(`🏦 已從銀行領出 $${amt}。`); }
+            if (type === 'in' && cash >= amt) { cash -= amt; bank += amt; }
+            else if (type === 'out' && bank >= amt) { bank -= amt; cash += amt; }
             updateUI();
         }
 
