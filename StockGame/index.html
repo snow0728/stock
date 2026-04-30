@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小小股神：資產配置版</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 市場快訊區塊 -->
+        <div class="news-ticker">
+            <div class="news-label">市場快訊</div>
+            <div class="news-window">
+                <div class="news-content" id="newsBox"></div>
+            </div>
+        </div>
+
+        <div class="main-p">
+            <!-- 稱號系統區塊 -->
+            <div class="title-section">
+                <div class="title-header">
+                    <div>
+                        <span style="font-size: 12px; opacity: 0.8;">目前稱號：</span>
+                        <span id="curTitleName" class="title-name">股市小白</span>
+                    </div>
+                    <button id="upgradeTitleBtn" class="title-shop-btn" onclick="buyTitle()" style="display:none;">升級稱號</button>
+                </div>
+                <div class="progress-container">
+                    <div id="titleBar" class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div style="font-size: 10px; display: flex; justify-content: space-between; margin-top: 5px;">
+                    <span id="curTitleDesc">目前尚無加成效果</span>
+                    <span id="nextTitleText">下一階：股市新鮮人 ($12,000)</span>
+                </div>
+            </div>
+
+            <!-- 狀態提示區 -->
+            <div class="header">
+                <div id="timer" style="font-weight: 900; color: var(--primary);">距離行情實現：15秒</div>
+                <div id="msg" style="color: var(--up-color); font-weight: bold;">歡迎來到股市！</div>
+            </div>
+
+            <!-- 資產顯示區 -->
+            <div class="total-asset-box" style="margin-bottom: 15px;">
+                <div class="card card-total">
+                    <div class="card-label">總資產估值 (Net Worth)</div>
+                    <div class="card-val" id="total" style="font-size: 28px;">$10,000</div>
+                </div>
+            </div>
+
+            <div class="asset-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+                <div class="card card-cash">
+                    <div class="card-label">可用現金</div>
+                    <div class="card-val" id="cash">$10,000</div>
+                </div>
+                <div class="card card-bank">
+                    <div class="card-label">銀行存款</div>
+                    <div class="card-val" id="bank">$0</div>
+                </div>
+                <div class="card card-stock">
+                    <div class="card-label">股票市值</div>
+                    <div class="card-val" id="stockValue">$0</div>
+                </div>
+                <div class="card card-fund">
+                    <div class="card-label">基金淨值</div>
+                    <div class="card-val" id="fundValue">$0</div>
+                </div>
+            </div>
+
+            <!-- 市場行情與交易區 -->
+            <div class="market-grid">
+                <div class="stock-list" id="stockList"></div>
+                <div class="chart-area">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                        <div>
+                            <h2 id="curName" style="font-size: 20px;">比特幣 (BTC)</h2>
+                            <div id="curChange" style="font-weight: bold; font-size: 18px;">▲ 0.0%</div>
+                        </div>
+                        <div id="curPrice" class="price-big">$5000.0</div>
+                    </div>
+                    <div class="chart-box"><canvas id="mainChart"></canvas></div>
+                    
+                    <div class="trade-controls">
+                        <div style="font-size: 14px; font-weight: bold;">
+                            <span id="curInventory">持有：0</span> | 
+                            <span id="curProfit">淨收益：$0</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="number" id="tradeAmt" value="1" min="1">
+                            <button class="op-btn" style="background:#747d8c" onclick="setTradeAmt('max_buy')">MAX買</button>
+                            <button class="op-btn" style="background:#747d8c" onclick="setTradeAmt('max_sell')">MAX賣</button>
+                        </div>
+                    </div>
+                    <div class="btns">
+                        <button class="b-btn b-buy" onclick="trade('buy')">買入 (BUY)</button>
+                        <button class="b-btn b-sell" onclick="trade('sell')">賣出 (SELL)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 銀行與基金操作區 -->
+            <div class="op-area">
+                <div class="bank-area">
+                    🏦 銀行：
+                    <input type="number" id="bankAmt" placeholder="金額" style="width: 100px;">
+                    <button class="op-btn" style="background: var(--primary)" onclick="bankOp('in')">存款</button>
+                    <button class="op-btn" style="background: var(--down-color)" onclick="bankOp('out')">領錢</button>
+                </div>
+                <div class="fund-area">
+                    📈 基金 (NAV: <span id="fundNAV">10.0</span>)：
+                    <input type="number" id="fundAmt" placeholder="金額" style="width: 100px;">
+                    <button class="op-btn" style="background: var(--crypto-color)" onclick="fundOp('in')">申購</button>
+                    <button class="op-btn" style="background: var(--down-color)" onclick="fundOp('out')">贖回</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 腳本引入順序：資料 -> 狀態 -> 模組 -> 渲染 -> 核心初始化 -->
+    <script src="js/data.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/market.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
