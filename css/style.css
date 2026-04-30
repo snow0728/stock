@@ -1,0 +1,149 @@
+:root {
+    --primary: #4a69bd;    
+    --accent: #f6b93b;     
+    --success: #78e08f;    
+    --up-color: #eb2f06;   
+    --down-color: #38ada9; 
+    --bg: #f0f3f6;
+    --crypto-color: #f39c12; 
+    --fund-color: #e15f41;  
+    --stock-color: #6a89cc; 
+    --title-gold: #f1c40f;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body { 
+    font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
+    background: var(--bg); 
+    min-height: 100vh; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    padding: 15px; 
+}
+
+.game-container { 
+    background: white; 
+    border-radius: 25px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+    width: 100%; 
+    max-width: 1200px; 
+    overflow: hidden; 
+    border: 6px solid #dcdde1; 
+}
+
+.title-section {
+    background: #2f3542;
+    padding: 15px 25px;
+    margin-bottom: 20px;
+    border-radius: 15px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.title-header { display: flex; justify-content: space-between; align-items: center; }
+
+.title-name { 
+    font-size: 22px; 
+    font-weight: 900; 
+    color: var(--title-gold);
+    text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+    animation: glow 2s infinite alternate; 
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 5px var(--title-gold); }
+    to { text-shadow: 0 0 20px var(--title-gold), 0 0 30px #ffffff; }
+}
+
+.progress-container { 
+    height: 10px; 
+    background: rgba(255,255,255,0.1); 
+    border-radius: 5px; 
+    overflow: hidden; 
+}
+
+.progress-bar { 
+    height: 100%; 
+    background: linear-gradient(90deg, #f1c40f, #f39c12); 
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
+}
+
+#curTitleDesc {
+    font-size: 12px;
+    line-height: 1.5;
+    opacity: 0.9;
+    color: #ecf0f1;
+    word-break: break-all;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 8px;
+    margin-top: 5px;
+}
+
+.title-shop-btn {
+    padding: 8px 15px;
+    background: var(--accent);
+    border: none;
+    border-radius: 5px;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 12px;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.news-ticker { background: #2f3542; color: #ffffff; height: 90px; overflow: hidden; position: relative; display: flex; align-items: center; }
+.news-label { height: 100%; background: #e67e22; color: white; padding: 0 15px; z-index: 10; font-weight: 900; display: flex; align-items: center; font-size: 16px; width: 100px; text-align: center;}
+.news-window { flex-grow: 1; height: 100%; position: relative; padding: 8px 20px; }
+.news-item { font-size: 18px; font-weight: bold; color: #ecf0f1; border-left: 3px solid #e67e22; padding-left: 10px; margin-bottom: 5px; }
+
+.main-p { padding: 20px 30px; }
+.total-asset-box { margin-bottom: 15px; }
+.card-total { background: #2f3542; color: white; border: 2px solid var(--title-gold) !important; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+.card-total .card-val { font-size: 28px; color: var(--title-gold); }
+
+.asset-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.card { padding: 15px; border-radius: 15px; text-align: center; border: 2px solid transparent; transition: transform 0.2s, box-shadow 0.2s; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+.card-cash { background: #fff9e6; border-color: var(--accent); color: #856404; }
+.card-bank { background: #eefdf3; border-color: var(--success); color: #155724; }
+.card-stock { background: #edf2ff; border-color: var(--stock-color); color: #004085; }
+.card-fund { background: #fff1f0; border-color: var(--fund-color); color: #721c24; }
+.card-label { font-size: 11px; margin-bottom: 5px; font-weight: bold; opacity: 0.8; }
+.card-val { font-size: 20px; font-weight: 900; }
+
+.market-grid { display: grid; grid-template-columns: 300px 1fr; gap: 25px; }
+.stock-list { display: flex; flex-direction: column; gap: 8px; max-height: 440px; overflow-y: auto; }
+.stock-item { background: white; border: 3px solid #f1f2f6; padding: 10px 15px; border-radius: 15px; cursor: pointer; transition: 0.2s; }
+.stock-item.active { border-color: var(--primary); background: #e1f5fe; }
+
+.limit-up { background: #ffebeb !important; border-color: var(--up-color) !important; }
+.limit-down { background: #e0f2f1 !important; border-color: var(--down-color) !important; }
+
+.badge-row { display: flex; gap: 5px; margin-top: 5px; }
+.hold-badge { background: #57606f; color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; }
+.profit-badge { padding: 2px 8px; border-radius: 6px; font-size: 10px; color: white; }
+
+.price-big { font-size: 42px; font-weight: 900; margin-bottom: 2px; }
+.chart-box { height: 180px; background: white; margin-bottom: 15px; }
+
+.trade-controls { background: #f1f2f6; padding: 10px 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.b-btn { padding: 12px; border: none; border-radius: 12px; font-size: 20px; font-weight: 900; cursor: pointer; color: white; }
+.b-buy { background: var(--up-color); }
+.b-sell { background: var(--down-color); }
+
+.op-area { margin-top: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.bank-area, .fund-area { padding: 15px; border-radius: 15px; border: 2px solid #dcdde1; display: flex; align-items: center; justify-content: center; gap: 15px; background: #ffffff; }
+.bank-area { border-left: 5px solid var(--success); }
+.fund-area { border-left: 5px solid var(--fund-color); }
+
+.op-btn { padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; border:none; color: white; background: #57606f; transition: opacity 0.2s; }
+.op-btn:hover { opacity: 0.8; }
+input[type="number"] { width: 100px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; text-align: center; }
+#msg { height: 20px; color: var(--up-color); font-weight: bold; font-size: 14px; margin-top: 10px; text-align: center; }
