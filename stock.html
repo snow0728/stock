@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小小股神：80條情報現實模擬版</title>
+    <title>小小股神：80條情報現實模擬版 (含基金系統)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #4a69bd; --accent: #f6b93b; --success: #78e08f;
             --up-color: #eb2f06; --down-color: #38ada9; --bg: #f0f3f6;
-            --crypto-color: #f39c12;
+            --crypto-color: #f39c12; --fund-color: #e15f41;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .game-container { background: white; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 950px; overflow: hidden; border: 8px solid #dcdde1; }
+        .game-container { background: white; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 1000px; overflow: hidden; border: 8px solid #dcdde1; }
         
         .news-ticker { background: #2f3542; color: #ffffff; height: 110px; overflow: hidden; position: relative; display: flex; align-items: center; }
         .news-label { height: 100%; background: #e67e22; color: white; padding: 0 20px; z-index: 10; font-weight: 900; display: flex; align-items: center; font-size: 18px; box-shadow: 5px 0 15px rgba(0,0,0,0.3); text-align: center; width: 120px;}
@@ -34,16 +34,16 @@
 
         .main-p { padding: 20px 25px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .asset-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 15px; }
+        /* 改為 5 個欄位來容納基金 */
+        .asset-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px; }
         .card { background: #f1f2f6; padding: 12px; border-radius: 20px; text-align: center; }
         .card-label { font-size: 11px; color: #747d8c; margin-bottom: 5px; font-weight: bold; }
-        .card-val { font-size: 18px; font-weight: 900; color: #2f3542; }
+        .card-val { font-size: 17px; font-weight: 900; color: #2f3542; }
 
         .market-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
         .stock-list { display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
         .stock-item { background: white; border: 4px solid #f1f2f6; padding: 10px 15px; border-radius: 18px; cursor: pointer; transition: 0.2s; position: relative; }
         .stock-item.active { border-color: var(--primary); background: #e1f5fe; }
-        .stock-item.crypto-active { border-color: var(--crypto-color); background: #fff9e6; }
         
         .limit-up { background: #ffebeb !important; border-color: var(--up-color) !important; }
         .limit-down { background: #e0f2f1 !important; border-color: var(--down-color) !important; }
@@ -59,7 +59,14 @@
         .b-buy { background: var(--up-color); }
         .b-sell { background: var(--down-color); }
 
-        .bank-area { margin-top: 15px; padding: 12px; background: #dfe4ea; border-radius: 20px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
+        /* 銀行與基金控制區 */
+        .op-area { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .bank-area, .fund-area { padding: 12px; border-radius: 20px; display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 14px; }
+        .bank-area { background: #dfe4ea; }
+        .fund-area { background: #f8efba; }
+        .op-btn { padding: 5px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; border:none; color: white; }
+        
+        input[type="number"] { width: 80px; padding: 5px; border-radius: 8px; border: 1px solid #ccc; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -86,9 +93,10 @@
 
             <div class="asset-grid">
                 <div class="card"><div class="card-label">現金 (可用)</div><div class="card-val" id="cash" style="color: var(--up-color)">$10,000</div></div>
-                <div class="card"><div class="card-label">銀行存款 (2%利息)</div><div class="card-val" id="bank" style="color: #2ed573">$0</div></div>
-                <div class="card"><div class="card-label">股票部位</div><div class="card-val" id="stockValue">$0</div></div>
+                <div class="card"><div class="card-label">銀行存款 (0.2%息)</div><div class="card-val" id="bank" style="color: #2ed573">$0</div></div>
+                <div class="card"><div class="card-label">自選股票部位</div><div class="card-val" id="stockValue">$0</div></div>
                 <div class="card" style="background:#fff9e6"><div class="card-label">加密資產</div><div class="card-val" id="cryptoValue" style="color: var(--crypto-color)">$0</div></div>
+                <div class="card" style="background:#ffeaa7"><div class="card-label">大盤基金 (自動)</div><div class="card-val" id="fundValue" style="color: var(--fund-color)">$0</div></div>
             </div>
 
             <div class="market-grid">
@@ -113,11 +121,20 @@
                 </div>
             </div>
 
-            <div class="bank-area">
-                🏦 銀行：<input type="number" id="bankAmt" value="1000" step="100" style="width: 80px; padding: 5px; border-radius: 8px; border:none;">
-                <button onclick="bankOp('in')" style="padding: 5px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; border:none;">存入</button>
-                <button onclick="bankOp('out')" style="padding: 5px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; border:none;">領錢</button>
-                <span id="msg" style="margin-left: auto; color: #57606f; font-size: 13px;">💡 準確率 70%，若出錯將發生反向波動！</span>
+            <div class="op-area">
+                <div class="bank-area">
+                    🏦 銀行：<input type="number" id="bankAmt" value="1000" step="100">
+                    <button class="op-btn" style="background: #2ed573;" onclick="bankOp('in')">存入</button>
+                    <button class="op-btn" style="background: #57606f;" onclick="bankOp('out')">領錢</button>
+                </div>
+                <div class="fund-area">
+                    📈 基金：<input type="number" id="fundAmt" value="1000" step="100">
+                    <button class="op-btn" style="background: var(--fund-color);" onclick="fundOp('in')">申購</button>
+                    <button class="op-btn" style="background: #57606f;" onclick="fundOp('out')">贖回</button>
+                </div>
+            </div>
+            <div style="text-align: right; margin-top: 10px;">
+                <span id="msg" style="color: #57606f; font-size: 13px;">💡 情報準確率70%。基金會自動追蹤全市場平均績效！</span>
             </div>
         </div>
     </div>
@@ -130,7 +147,7 @@
             { name: '快樂電動車 (EV)', basePrice: 100, vola: 0.05, drift: 0.002, color: '#78e08f', desc: '綠能運輸 (景氣)', type: 'stock', beta: 1.0 }
         ];
 
-        // 80 條優化情報 (影響順序：BTC, TSM, SpaceX, EV)
+         // 80 條優化情報 (影響順序：BTC, TSM, SpaceX, EV)
         const PREDICTIONS = [
             { t: "📈 大家都想買比特幣，價格像坐火箭一樣衝上去！", imp: [1.3, 1.0, 1.0, 1.0] },
             { t: "⚡ 晶片王做出史上最強晶片，全世界的手機都要找他買！", imp: [1.0, 1.25, 1.0, 1.0] },
@@ -213,13 +230,14 @@
             { t: "🧬 生物晶片應用於醫療領域，晶片王開拓新藍海。", imp: [1.0, 1.1, 1.0, 1.0] },
             { t: "🌌 火箭王：2030年前將送人類上火星！", imp: [1.0, 1.0, 1.15, 1.0] }
         ];
-
-        let cash = 10000, bank = 0, curIdx = 0, holdings = [0, 0, 0, 0], totalCosts = [0, 0, 0, 0];
+        let cash = 10000, bank = 0, fundBalance = 0; // 新增 fundBalance
+        let curIdx = 0, holdings = [0, 0, 0, 0], totalCosts = [0, 0, 0, 0];
         let priceHistories = STOCKS.map(s => Array(25).fill(s.basePrice));
         let timer = 15, chart, currentEvents = [];
         
         const STOCK_BUY_FEE = 0.001425, STOCK_SELL_TAX = 0.003, CRYPTO_FEE = 0.001;
-        const TRUTH_RATE = 0.7; // 正確率 70%
+        const FUND_FEE = 0.0005; // 基金每次結算內扣 0.05% 管理費
+        const TRUTH_RATE = 0.7; 
 
         window.onload = () => { prepareNextEvents(); initChart(); updateUI(); setInterval(tick, 1000); };
 
@@ -227,6 +245,7 @@
             currentEvents = [];
             let pool = [...PREDICTIONS];
             for (let i = 0; i < 3; i++) {
+                if(pool.length === 0) break;
                 const idx = Math.floor(Math.random() * pool.length);
                 currentEvents.push(pool.splice(idx, 1)[0]);
             }
@@ -244,6 +263,7 @@
 
         function applyMarketChanges() {
             const marketSentiment = (Math.random() - 0.45) * 0.012; 
+            let totalReturnRatio = 0; // 用來計算大盤平均回報
 
             STOCKS.forEach((s, i) => {
                 const last = priceHistories[i][priceHistories[i].length - 1];
@@ -251,14 +271,8 @@
 
                 currentEvents.forEach(ev => {
                     const isTrue = Math.random() < TRUTH_RATE;
-                    if (isTrue) {
-                        eventImpact *= ev.imp[i]; 
-                    } else {
-                        // 30% 反轉機制：原漲則跌，原跌則漲
-                        if (ev.imp[i] !== 1.0) {
-                            eventImpact *= (1.0 / ev.imp[i]); 
-                        }
-                    }
+                    if (isTrue) { eventImpact *= ev.imp[i]; } 
+                    else if (ev.imp[i] !== 1.0) { eventImpact *= (1.0 / ev.imp[i]); }
                 });
 
                 const meanReversion = (s.basePrice - last) / s.basePrice * 0.01;
@@ -267,22 +281,32 @@
                 
                 let nextPrice = last * changeRate * eventImpact;
 
-                // 10% 漲跌停限制 (台股模擬)
                 if (s.type === 'stock') {
                     const ratio = nextPrice / last;
                     if (ratio > 1.1) nextPrice = last * 1.1; 
                     if (ratio < 0.9) nextPrice = last * 0.9;
                 }
-
                 if (nextPrice < 1) nextPrice = 1;
+                
                 priceHistories[i].push(nextPrice);
                 if (priceHistories[i].length > 25) priceHistories[i].shift();
+
+                // 計算該資產的漲跌比例，加總給大盤
+                totalReturnRatio += (nextPrice / last);
             });
 
+            // 銀行利息 0.2%
             if (bank > 0) bank *= 1.002;
+
+            // 基金自動結算：大盤平均報酬 * (1 - 管理費)
+            if (fundBalance > 0) {
+                const avgReturn = totalReturnRatio / STOCKS.length;
+                fundBalance = fundBalance * avgReturn * (1 - FUND_FEE);
+            }
+
             prepareNextEvents(); 
             updateUI();
-            msg(`📢 結算完成！市場已反應消息（包含反轉風險）。`);
+            msg(`📢 結算完成！市場已反應消息（基金已自動化追蹤大盤）。`);
         }
 
         function initChart() {
@@ -337,12 +361,16 @@
 
             document.getElementById('stockValue').innerText = `$${sVal.toLocaleString(undefined,{maximumFractionDigits:0})}`;
             document.getElementById('cryptoValue').innerText = `$${cVal.toLocaleString(undefined,{maximumFractionDigits:0})}`;
-            document.getElementById('total').innerText = `$${(cash + bank + sVal + cVal).toLocaleString(undefined,{maximumFractionDigits:0})}`;
+            document.getElementById('fundValue').innerText = `$${fundBalance.toLocaleString(undefined,{maximumFractionDigits:0})}`;
+            
+            // 總資產加入基金計算
+            document.getElementById('total').innerText = `$${(cash + bank + sVal + cVal + fundBalance).toLocaleString(undefined,{maximumFractionDigits:0})}`;
             document.getElementById('cash').innerText = `$${cash.toLocaleString(undefined,{maximumFractionDigits:0})}`;
             document.getElementById('bank').innerText = `$${bank.toLocaleString(undefined,{maximumFractionDigits:0})}`;
 
             chart.data.datasets[0].data = history;
             chart.data.datasets[0].borderColor = STOCKS[curIdx].color;
+            chart.backgroundColor = STOCKS[curIdx].color + '22';
             chart.update('none');
         }
 
@@ -365,8 +393,28 @@
 
         function bankOp(type) {
             const amt = parseInt(document.getElementById('bankAmt').value);
+            if (isNaN(amt) || amt <= 0) return;
             if (type === 'in' && cash >= amt) { cash -= amt; bank += amt; }
             else if (type === 'out' && bank >= amt) { bank -= amt; cash += amt; }
+            updateUI();
+        }
+
+        // 新增基金申購與贖回邏輯
+        function fundOp(type) {
+            const amt = parseInt(document.getElementById('fundAmt').value);
+            if (isNaN(amt) || amt <= 0) return;
+            if (type === 'in' && cash >= amt) { 
+                cash -= amt; 
+                fundBalance += amt; 
+                msg(`✅ 成功申購 $${amt} 大盤基金！系統將自動結算。`);
+            }
+            else if (type === 'out' && fundBalance > 0) { 
+                // 可以部分贖回，若贖回大於持有額度，則全數贖回
+                const withdrawAmt = Math.min(amt, fundBalance);
+                fundBalance -= withdrawAmt; 
+                cash += withdrawAmt; 
+                msg(`✅ 成功贖回 $${withdrawAmt.toFixed(0)} 基金至現金！`);
+            }
             updateUI();
         }
 
