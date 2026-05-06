@@ -76,8 +76,6 @@ function applyMarketChanges() {
             if (e.isExtreme || SPECIAL_EVENTS.includes(e)) {
                 evImp *= e.imp[i];
             } else {
-                // 根據 prepareEvents 先前決定好的 isFake 屬性進行套用
-                // 若有水晶球，則強制視為真情報
                 let isActuallyFake = e.isFake;
                 if (currentTruthRate === 1.0) isActuallyFake = false;
                 
@@ -137,8 +135,24 @@ function applyMarketChanges() {
     let fReturn = 0; STOCKS.forEach((s, i) => fReturn += returns[i] * fundWeights[i]);
     fundNAV *= fReturn * (1 - (currentTitleLevel >= 4 ? 0 : FUND_MGMT_FEE));
 
-    if(bank > 0) bank *= (1 + (currentTitleLevel >= 2 ? BANK_RATE*2 : BANK_RATE));
-    if(loan > 0) loan *= (1 + (currentTitleLevel >= 5 ? LOAN_RATE*0.5 : LOAN_RATE));
+    // ============================================
+    // 【修改點】改為每 3 回合結算一次銀行利息，並加入 UI 提示
+    // ============================================
+    if (turnCount % 3 === 0) {
+        if(bank > 0) {
+            let rate = currentTitleLevel >= 2 ? BANK_RATE * 2 : BANK_RATE;
+            let interest = Math.floor(bank * rate);
+            bank += interest;
+            if (interest > 0) msg(`🏦 銀行存款利息入帳：$${interest.toLocaleString()}`, '#27ae60');
+        }
+        if(loan > 0) {
+            let rate = currentTitleLevel >= 5 ? LOAN_RATE * 0.5 : LOAN_RATE;
+            let loanInt = Math.floor(loan * rate);
+            loan += loanInt;
+            if (loanInt > 0) msg(`💸 銀行收取貸款利息：$${loanInt.toLocaleString()}`, '#e74c3c');
+        }
+    }
+    // ============================================
     
     let avgRet = returns.reduce((a,b)=>a+b, 0) / returns.length;
     fearGreedIndex = Math.max(0, Math.min(100, fearGreedIndex * 0.8 + 50 * 0.2 + (avgRet - 1.0) * 500));

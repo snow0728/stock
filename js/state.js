@@ -18,17 +18,30 @@ let isPaused = false;
 let ownedItems = [];
 let scratchTicketsLeft = 10;
 let scratchTimer = 30;
-let currentDiscounts = {}; // 新增：追蹤目前商店的折扣
+let currentDiscounts = {}; // 追蹤目前商店的折扣
 
 let STOCK_BUY_FEE = 0.001425, STOCK_SELL_TAX = 0.003, CRYPTO_FEE = 0.001;
-let BANK_RATE = 0.01, LOAN_RATE = 0.02, TRUTH_RATE = 0.75, FUND_MGMT_FEE = 0.0001;
+// 【修改點】將銀行存款與貸款基本利率改為 5% (0.05)
+let BANK_RATE = 0.05, LOAN_RATE = 0.05, TRUTH_RATE = 0.75, FUND_MGMT_FEE = 0.0001;
 
 function hasItem(itemId) {
     return ownedItems.includes(itemId);
 }
 
-function getGrossAssets() {
-    let sVal = 0; STOCKS.forEach((s, i) => sVal += (priceHistories[i][priceHistories[i].length-1] * holdings[i]));
-    return cash + bank + sVal + (fundUnits * fundNAV);
+function getTotalAssets() {
+    let stockAsset = 0;
+    for(let i=0; i<STOCKS.length; i++) {
+        stockAsset += holdings[i] * priceHistories[i][priceHistories[i].length-1];
+    }
+    let fundAsset = fundUnits * fundNAV;
+    return cash + bank + stockAsset + fundAsset - loan;
 }
-function getTotalAssets() { return getGrossAssets() - loan; }
+
+function getGrossAssets() {
+    let stockAsset = 0;
+    for(let i=0; i<STOCKS.length; i++) {
+        stockAsset += holdings[i] * priceHistories[i][priceHistories[i].length-1];
+    }
+    let fundAsset = fundUnits * fundNAV;
+    return cash + bank + stockAsset + fundAsset; 
+}
