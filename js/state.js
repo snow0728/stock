@@ -16,6 +16,8 @@ let isPaused = false;
 
 // 道具系統追蹤
 let ownedItems = [];
+let voucher1Count = 0;
+let voucher2Count = 0;
 let scratchTicketsLeft = 10;
 let scratchTimer = 30;
 let currentDiscounts = {}; // 追蹤目前商店的折扣

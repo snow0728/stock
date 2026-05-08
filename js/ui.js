@@ -40,25 +40,37 @@ function switchTab(tabId) {
         document.getElementById('divPlaysLeft').innerText = divinationPlaysLeft;
     }
 }
-
 function renderShop() {
     let container = document.getElementById('shopItemsContainer');
+    // 更新金錢顯示，確保金額格式化
     document.getElementById('shopCashVal').innerText = `$${Math.floor(cash).toLocaleString()}`;
     
     let html = '';
     
     SHOP_ITEMS.forEach(item => {
+        // --- 1. 價格與折扣邏輯 ---
+        let discount = currentDiscounts[item.id] || 0;
+        let actualCost = Math.floor(item.cost * (1 - discount));
+        
+        // --- 2. 判斷是否已擁有 (針對 Buff 類型) ---
         let isOwned = item.type === 'buff' && hasItem(item.id);
         
-        let actualCost = item.cost;
+        // --- 3. 取得持有數量的顯示文字 (針對 Voucher) ---
+        let countDisplay = "";
+        if (item.id === "item_voucher1") {
+            countDisplay = `<div style="font-size:12px; color:#e67e22; font-weight:bold;">持有：${voucher1Count}</div>`;
+        } else if (item.id === "item_voucher2") {
+            countDisplay = `<div style="font-size:12px; color:#e67e22; font-weight:bold;">持有：${voucher2Count}</div>`;
+        }
+
+        // --- 4. 折扣標籤標籤 ---
         let discountBadge = '';
-        
-        if (currentDiscounts[item.id]) {
-            let discPercent = Math.round(currentDiscounts[item.id] * 100);
-            actualCost = Math.floor(item.cost * (1 - currentDiscounts[item.id]));
+        if (discount > 0 && !isOwned) {
+            let discPercent = Math.round(discount * 100);
             discountBadge = `<div class="discount-badge">-${discPercent}%</div>`;
         }
 
+        // --- 5. 按鈕與描述狀態判斷 ---
         let canBuy = false;
         let btnText = "";
         let btnClass = "btn-buy-item";
@@ -68,16 +80,16 @@ function renderShop() {
             canBuy = cash >= actualCost && !isOwned;
             if (isOwned) {
                 btnText = "✅ 已啟用";
+                btnClass += " owned"; // 假設你有這個樣式
             } else {
-                btnText = currentDiscounts[item.id] 
+                btnText = discount > 0 
                     ? `購買 (<s style="font-size:0.8em;opacity:0.7">$${item.cost}</s> $${actualCost})`
                     : `購買 ($${actualCost})`;
             }
         } else if (item.id === 'item_scratch') {
             canBuy = cash >= actualCost && scratchTicketsLeft > 0;
-            
             if (scratchTicketsLeft > 0) {
-                btnText = currentDiscounts[item.id]
+                btnText = discount > 0
                     ? `刮一張 (<s style="font-size:0.8em;opacity:0.7">$${item.cost}</s> $${actualCost})`
                     : `刮一張 ($${actualCost})`;
             } else {
@@ -86,25 +98,36 @@ function renderShop() {
             
             if (!canBuy && scratchTicketsLeft <= 0) btnClass += " disabled-cooldown";
             
+            // 刮刮樂特有的動態描述（含剩餘張數與計時器）
             dynDesc = `${item.desc}<br><br>
                        剩餘數量：<b>${scratchTicketsLeft} / 10</b> 張<br>
                        補貨倒數：<b id="scratchTimerDisplay">${scratchTimer}</b> 秒`;
+        } else {
+            // 一般消耗性道具
+            canBuy = cash >= actualCost;
+            btnText = discount > 0
+                ? `購買 (<s style="font-size:0.8em;opacity:0.7">$${item.cost}</s> $${actualCost})`
+                : `購買 ($${actualCost})`;
         }
-        
+
+        // --- 6. 組合最終 HTML (採用程式碼 1 的卡片結構) ---
         html += `
             <div class="shop-item-card">
                 ${isOwned ? '<div class="item-owned-badge">✅ 已啟用</div>' : ''}
                 ${!isOwned && discountBadge ? discountBadge : ''}
                 <div class="shop-item-icon">${item.icon}</div>
                 <div class="shop-item-name">${item.name}</div>
+                ${countDisplay}
                 <div class="shop-item-desc">${dynDesc}</div>
-                <button class="${btnClass}" onclick="buyShopItem('${item.id}')" ${!canBuy ? 'disabled' : ''}>${btnText}</button>
+                <button class="${btnClass}" onclick="buyShopItem('${item.id}')" ${!canBuy ? 'disabled' : ''}>
+                    ${btnText}
+                </button>
             </div>
         `;
     });
+    
     container.innerHTML = html;
 }
-
 function updateUI() {
     const hist = priceHistories[curIdx], now = hist[hist.length-1];
     const chg = ((now - hist[hist.length-2])/hist[hist.length-2]*100).toFixed(2);

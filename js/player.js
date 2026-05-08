@@ -154,13 +154,36 @@ function buyShopItem(itemId) {
     let item = SHOP_ITEMS.find(i => i.id === itemId);
     if (!item) return;
 
-    // 計算實際花費 (若有折扣)
+    // 1. 計算實際花費 (套用折扣)
     let actualCost = item.cost;
     if (currentDiscounts[itemId]) {
         actualCost = Math.floor(item.cost * (1 - currentDiscounts[itemId]));
     }
 
-    if (item.type === 'buff') {
+    // 2. 判斷商品類型並執行對應邏輯
+    
+    // --- 類型 A：兌換券 (可累加數量) ---
+    if (itemId === "item_voucher1" || itemId === "item_voucher2") {
+        if (cash >= actualCost) {
+            cash -= actualCost;
+            
+            // 增加對應的計數器
+            if (itemId === "item_voucher1") {
+                voucher1Count++;
+            } else {
+                voucher2Count++;
+            }
+
+            showToast(`✅ 購買成功：${item.name}！`, "#27ae60");
+            updateUI();
+            if (typeof renderShop === "function") renderShop(); // 確保商店介面同步更新數量
+        } else {
+            msg("❌ 口袋現金不足以購買兌換券！", "#e74c3c");
+        }
+    } 
+
+    // --- 類型 B：Buff 道具 (不可重複購買) ---
+    else if (item.type === 'buff') {
         if (hasItem(itemId)) {
             msg("⚠️ 已經擁有這個道具囉！", "#f39c12");
             return;
@@ -174,7 +197,10 @@ function buyShopItem(itemId) {
         } else {
             msg("❌ 口袋現金不足以購買此道具！", "#e74c3c");
         }
-    } else if (item.id === 'item_scratch') {
+    } 
+
+    // --- 類型 C：刮刮樂 (機率中獎) ---
+    else if (item.id === 'item_scratch') {
         if (scratchTicketsLeft <= 0) {
             msg("⏳ 這批刮刮樂已經賣完囉，請等下一次補貨！", "#f39c12");
             return;
@@ -188,28 +214,17 @@ function buyShopItem(itemId) {
             let msgText = "";
             let color = "";
             
-            // 期望值固定 250
-            // 3000(0.5%), 1000(3.5%), 500(10%), 200(40%), 100(45%)
+            // 獎金機率邏輯 (維持原樣)
             if (roll < 0.005) { 
-                winAmt = 3000; 
-                msgText = "🎉 太神啦！刮中特獎 $3,000！"; 
-                color = "#e74c3c"; 
+                winAmt = 3000; msgText = "🎉 太神啦！刮中特獎 $3,000！"; color = "#e74c3c"; 
             } else if (roll < 0.035) { 
-                winAmt = 1000; 
-                msgText = "✨ 恭喜！刮中頭獎 $1,000！"; 
-                color = "#e67e22"; 
+                winAmt = 1000; msgText = "✨ 恭喜！刮中頭獎 $1,000！"; color = "#e67e22"; 
             } else if (roll < 0.135) { 
-                winAmt = 500; 
-                msgText = "💎 運氣不錯！刮中貳獎 $500！"; 
-                color = "#f1c40f"; 
+                winAmt = 500; msgText = "💎 運氣不錯！刮中貳獎 $500！"; color = "#f1c40f"; 
             } else if (roll < 0.385) { 
-                winAmt = 200; 
-                msgText = "💰 刮中參獎 $200！"; 
-                color = "#2ecc71"; 
+                winAmt = 200; msgText = "💰 刮中參獎 $200！"; color = "#2ecc71"; 
             } else { 
-                winAmt = 100; 
-                msgText = "🧧 普獎 $100，再接再厲！"; 
-                color = "#95a5a6"; 
+                winAmt = 100; msgText = "🧧 普獎 $100，再接再厲！"; color = "#95a5a6"; 
             }
             
             cash += winAmt;
@@ -220,7 +235,6 @@ function buyShopItem(itemId) {
         }
     }
 }
-
 let boxOpened = false;
 let boxRewards = [0, 0, 0];
 
