@@ -7,7 +7,7 @@ let fundTotalCost = 0;
 
 let currentEvents = [], turnCount = 0, currentTitleLevel = 0, chart;
 // 已經移除恐懼與貪婪指數 (fearGreedIndex)
-let taxTurns = 15;
+let taxTurns = 1;
 let accumulatedTax = 0;
 let insuranceTurns = 0;
 

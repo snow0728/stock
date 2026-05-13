@@ -23,8 +23,8 @@ const SHOP_ITEMS = [
     { id: "item_ins_plus", type: "buff", name: "白金醫療險", icon: "🏥", desc: "綜合意外險理賠金額下限提升至 80% (原60%)，黑天鵝股災理賠提升至 20%。", cost: 6000 },
     { id: "item_tax_evade", type: "buff", name: "開曼群島帳戶", icon: "🏝️", desc: "利用海外帳戶避稅，動態生活費累積速度永久降低 50%！", cost: 5000 },
     { id: "item_crystal_ball", type: "buff", name: "水晶球預測器", icon: "🔮", desc: "市場情報機！跑馬燈假新聞機率降至 0%，普通事件必為真新聞。", cost: 6000 },
-    { id: "item_voucher1", type: "consumable", name: "成績標準降低兌換券", icon: "🎫", desc: "可自由使用 使一次成績標準降低2分", cost: 12000 },
-    { id: "item_voucher2", type: "consumable", name: "班級成績標準降兌換券", icon: "🎫", desc: "可自由使用 使一次班級成績標準降低1分", cost: 15000 },
+    { id: "item_voucher1", type: "consumable", name: "兌換券1", icon: "🎫", desc: "暫時無可兌換項目", cost: 10000 },
+    { id: "item_voucher2", type: "consumable", name: "兌換券2", icon: "🎫", desc: "暫時無可兌換項目", cost: 10000 },
     { 
         id: "item_scratch", 
         type: "consumable", 

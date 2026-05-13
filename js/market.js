@@ -56,7 +56,7 @@ function applyMarketChanges() {
 
     if (taxTurns > 5) {
         let baseLivingCost = 500; 
-        let assetRate = 0.003; 
+        let assetRate = 0.01; 
         let expectedTotalExpense = baseLivingCost + (getGrossAssets() * assetRate);
         let discount = (currentTitleLevel >= 3 ? 0.7 : 1);
         if(hasItem("item_tax_evade")) discount *= 0.5;
@@ -178,8 +178,8 @@ function applyMarketChanges() {
     prepareEvents(); 
     updateUI();
 
-    // ====== 修改後的占卜刷新邏輯 (每 2 回合刷新 5 次) ======
-    if (turnCount % 2 === 0) {
+    // ====== 修改後的占卜刷新邏輯 (每 3 回合刷新 5 次) ======
+    if (turnCount % 3 === 0) {
         divinationPlaysLeft = 5;
         if(document.getElementById('divPlaysLeft')) {
             document.getElementById('divPlaysLeft').innerText = divinationPlaysLeft;
@@ -349,8 +349,8 @@ function checkGovernmentSubsidy() {
     }
 }
 
-// 每 5 回合重置一次占卜小遊戲次數
-    if (turnCount % 5 === 0) {
+// 每 3 回合重置一次占卜小遊戲次數
+    if (turnCount % 3 === 0) {
         divinationPlaysLeft = 5;
         if(document.getElementById('divPlaysLeft')) {
             document.getElementById('divPlaysLeft').innerText = divinationPlaysLeft;

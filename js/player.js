@@ -160,6 +160,13 @@ function buyShopItem(itemId) {
         actualCost = Math.floor(item.cost * (1 - currentDiscounts[itemId]));
     }
 
+    // ========== 新增：負債時無法購買消耗品的限制 ==========
+    if (item.type === 'consumable' && loan > 0) {
+        msg("❌ 身上還有銀行貸款未還清，無法購買消耗品！", "#e74c3c");
+        return;
+    }
+    // ======================================================
+
     // 2. 判斷商品類型並執行對應邏輯
     
     // --- 類型 A：兌換券 (可累加數量) ---
@@ -312,7 +319,7 @@ function createDivinationGrid() {
 
 function startDivination() {
     if (divinationPlaysLeft <= 0) {
-        msg("⏳ 本期占卜次數已耗盡，請等待命運之輪重新轉動 (每2回合)！", "#e74c3c");
+        msg("⏳ 本期占卜次數已耗盡，請等待命運之輪重新轉動 (每3回合)！", "#e74c3c");
         return;
     }
     
@@ -377,8 +384,8 @@ function revealDivination(idx) {
 
 function updateDivinationDisplay() {
     const win = Math.floor(divinationEntryFee * divinationCurrentMulti);
-    document.getElementById('divCurrentWin').innerText = `能量回饋: $${win}`;
-    document.getElementById('cashoutDivBtn').innerText = `收回能量 $${win}`;
+    document.getElementById('divCurrentWin').innerText = `金錢回饋: $${win}`;
+    document.getElementById('cashoutDivBtn').innerText = `收回金錢 $${win}`;
     document.getElementById('divPlaysLeft').innerText = divinationPlaysLeft;
     
     if (divinationRevealedCount < 6) {

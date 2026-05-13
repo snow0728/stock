@@ -77,6 +77,7 @@ function renderShop() {
         let dynDesc = item.desc;
         
         if (item.type === 'buff') {
+            // Buff 道具不受負債限制
             canBuy = cash >= actualCost && !isOwned;
             if (isOwned) {
                 btnText = "✅ 已啟用";
@@ -87,13 +88,20 @@ function renderShop() {
                     : `購買 ($${actualCost})`;
             }
         } else if (item.id === 'item_scratch') {
-            canBuy = cash >= actualCost && scratchTicketsLeft > 0;
+            canBuy = cash >= actualCost && scratchTicketsLeft > 0 && loan <= 0;
+            
             if (scratchTicketsLeft > 0) {
                 btnText = discount > 0
                     ? `刮一張 (<s style="font-size:0.8em;opacity:0.7">$${item.cost}</s> $${actualCost})`
                     : `刮一張 ($${actualCost})`;
             } else {
                 btnText = `售完等補貨`;
+            }
+
+            // 新增：負債時的按鈕狀態顯示
+            if (loan > 0) {
+                canBuy = false;
+                btnText = `需先還清負債`;
             }
             
             if (!canBuy && scratchTicketsLeft <= 0) btnClass += " disabled-cooldown";
@@ -103,14 +111,20 @@ function renderShop() {
                        剩餘數量：<b>${scratchTicketsLeft} / 10</b> 張<br>
                        補貨倒數：<b id="scratchTimerDisplay">${scratchTimer}</b> 秒`;
         } else {
-            // 一般消耗性道具
-            canBuy = cash >= actualCost;
+            // 一般消耗性道具 (兌換券等)
+            canBuy = cash >= actualCost && loan <= 0;
             btnText = discount > 0
                 ? `購買 (<s style="font-size:0.8em;opacity:0.7">$${item.cost}</s> $${actualCost})`
                 : `購買 ($${actualCost})`;
+
+            // 新增：負債時的按鈕狀態顯示
+            if (loan > 0) {
+                canBuy = false;
+                btnText = `需先還清負債`;
+            }
         }
 
-        // --- 6. 組合最終 HTML (採用程式碼 1 的卡片結構) ---
+        // --- 6. 組合最終 HTML ---
         html += `
             <div class="shop-item-card">
                 ${isOwned ? '<div class="item-owned-badge">✅ 已啟用</div>' : ''}
