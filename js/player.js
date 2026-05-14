@@ -1,0 +1,501 @@
+function trade(type) {
+    const s = STOCKS[curIdx], p = priceHistories[curIdx][priceHistories[curIdx].length-1];
+    let qty = parseInt(document.getElementById('tradeAmt').value) || 0;
+    
+    let buyFee = (s.type==='crypto'?0.001:0.001425) * (currentTitleLevel >= 1 ? 0.5 : 1);
+    let sellTax = (s.type==='crypto'?0:0.003) * (currentTitleLevel >= 5 ? 0 : 1);
+
+    if(hasItem("item_vip")) sellTax = 0;
+
+    if(type==='buy') {
+        let cost = p * (1+buyFee) * qty;
+        if(cash < cost) { msg("❌ 錢不夠喔！", '#e74c3c'); return; }
+        cash -= cost; holdings[curIdx] += qty; totalCosts[curIdx] += cost;
+    } else {
+        qty = Math.min(qty, holdings[curIdx]);
+        if(qty <= 0) return;
+        let rev = p * (1-buyFee-sellTax) * qty;
+        let avg = totalCosts[curIdx] / holdings[curIdx];
+        totalCosts[curIdx] -= avg * qty; holdings[curIdx] -= qty; cash += rev;
+    }
+    updateUI();
+}
+
+function bankOp(type) {
+    let amt = parseInt(document.getElementById('bankAmt').value) || 0;
+    if(amt <= 0) return;
+    
+    if(type==='in') {
+        if(cash >= amt) { 
+            cash -= amt; 
+            bank += amt; 
+            msg(`🏦 成功存入 $${amt.toLocaleString()}`);
+        } else {
+            msg("❌ 手邊現金不足！", "#e74c3c");
+        }
+    } else if(type==='out') {
+        if(bank >= amt) { 
+            bank -= amt; 
+            cash += amt; 
+            msg(`🏦 從存款提取 $${amt.toLocaleString()}`);
+        } else {
+            msg("❌ 銀行存款不足！請另外申請借貸。", "#e74c3c");
+        }
+    } else if(type==='borrow') {
+        let borrowLimit = hasItem("item_vip") ? 0.8 : 0.5;
+        let canBorrow = getGrossAssets() * borrowLimit;
+        if(loan + amt <= canBorrow) {
+            loan += amt;
+            cash += amt;
+            msg(`⚠️ 成功向銀行借貸 $${amt.toLocaleString()}`, "#f39c12");
+        } else {
+            msg(`❌ 借貸額度已滿 (上限為總資產${borrowLimit*100}%)！`, "#e74c3c");
+        }
+    }
+    document.getElementById('bankAmt').value = "";
+    updateUI();
+}
+
+function quickBank(type) {
+    let input = document.getElementById('bankAmt');
+    if(type === 'half') {
+        input.value = Math.floor(cash / 2);
+    } else if(type === 'all') {
+        input.value = Math.floor(cash);
+    } else if(type === 'clearLoan') {
+        if(loan <= 0) { msg("😊 您目前沒有任何債務。"); return; }
+        let maxCanRepay = cash + bank;
+        let payAmt = Math.min(maxCanRepay, loan);
+        
+        if (payAmt > 0) {
+            if (cash >= payAmt) {
+                cash -= payAmt;
+            } else {
+                let fromBank = payAmt - cash;
+                cash = 0;
+                bank -= fromBank;
+            }
+            loan -= payAmt;
+            msg(`✅ 已優先償還債務 $${payAmt.toLocaleString()}`);
+        } else {
+            msg("❌ 餘額不足以還款！", "#e74c3c");
+        }
+        updateUI();
+    }
+}
+
+function fundOp(type) {
+    let amt = parseInt(document.getElementById('fundAmt').value) || 0;
+    let fee = (currentTitleLevel >= 4 ? 0 : 0.01);
+    if(type==='in') {
+        let c = amt * (1+fee); 
+        if(c > cash) { 
+            amt = cash / (1+fee); 
+            c = cash; 
+        }
+        if (amt <= 0) return;
+        cash -= c; 
+        fundUnits += (amt / fundNAV);
+        fundTotalCost += amt;
+        msg(`✅ 申購基金 $${Math.floor(amt).toLocaleString()}`);
+    } else {
+        let maxAmt = fundUnits * fundNAV;
+        if (amt >= maxAmt) {
+            amt = maxAmt;
+            msg(`⚠️ 全數贖回`);
+        } else {
+            msg(`✅ 贖回基金 $${Math.floor(amt).toLocaleString()}`);
+        }
+        
+        let u = amt / fundNAV;
+        if (u <= 0) return;
+        
+        let costRatio = u / fundUnits;
+        fundTotalCost -= (fundTotalCost * costRatio);
+        if (fundTotalCost < 0) fundTotalCost = 0;
+        
+        fundUnits -= u; 
+        if (fundUnits < 0.0001) {
+            fundUnits = 0;
+            fundTotalCost = 0;
+        }
+        
+        cash += amt;
+    }
+    updateUI();
+}
+
+function buyInsurance() {
+    if (insuranceTurns > 0) {
+        msg("⚠️ 已經有保險了，等這期結束再買吧！"); return;
+    }
+    let setupFee = 500; 
+    if (cash >= setupFee) {
+        cash -= setupFee;
+        insuranceTurns = 15;
+        showToast(`🛡️ 成功投保！扣除開辦費 $${setupFee}。`, '#3498db');
+        updateUI();
+    } else {
+        msg("❌ 現金不夠付保險開辦費！", '#e74c3c');
+    }
+}
+
+function buyTitle() {
+    let n = currentTitleLevel + 1;
+    if(n < TITLE_DATA.length && cash >= TITLE_DATA[n].cost) {
+        cash -= TITLE_DATA[n].cost; currentTitleLevel = n; updateUI();
+        showToast(`🎊 恭喜！你升級為【${TITLE_DATA[n].name}】`, '#f1c40f');
+    } else {
+        msg("❌ 升級需要的錢還不夠喔！");
+    }
+}
+
+function buyShopItem(itemId) {
+    let item = SHOP_ITEMS.find(i => i.id === itemId);
+    if (!item) return;
+
+    // 1. 計算實際花費 (套用折扣)
+    let actualCost = item.cost;
+    if (currentDiscounts[itemId]) {
+        actualCost = Math.floor(item.cost * (1 - currentDiscounts[itemId]));
+    }
+
+    // ========== 新增：負債時無法購買消耗品的限制 ==========
+    if (item.type === 'consumable' && loan > 0) {
+        msg("❌ 身上還有銀行貸款未還清，無法購買消耗品！", "#e74c3c");
+        return;
+    }
+    // ======================================================
+
+    // 2. 判斷商品類型並執行對應邏輯
+    
+    // --- 類型 A：兌換券與卡片 (可累加數量) ---
+    if (["item_voucher1", "item_voucher2", "item_red_card", "item_green_card"].includes(itemId)) {
+        
+        // ========== 新增：紅綠卡的持有上限與冷卻判定 ==========
+        if (itemId === "item_red_card") {
+            if (redCardCount >= 1) { msg("❌ 紅卡最多只能同時持有一張！", "#e74c3c"); return; }
+            if (redCardCooldown > 0) { msg(`⏳ 紅卡還在冷卻中！剩餘 ${redCardCooldown} 回合`, "#f39c12"); return; }
+        } else if (itemId === "item_green_card") {
+            if (greenCardCount >= 1) { msg("❌ 綠卡最多只能同時持有一張！", "#e74c3c"); return; }
+            if (greenCardCooldown > 0) { msg(`⏳ 綠卡還在冷卻中！剩餘 ${greenCardCooldown} 回合`, "#f39c12"); return; }
+        }
+        // ======================================================
+
+        if (cash >= actualCost) {
+            cash -= actualCost;
+            
+            // 增加對應的計數器，並觸發冷卻時間 (3回合)
+            if (itemId === "item_voucher1") voucher1Count++;
+            else if (itemId === "item_voucher2") voucher2Count++;
+            else if (itemId === "item_red_card") { redCardCount++; redCardCooldown = 3; }
+            else if (itemId === "item_green_card") { greenCardCount++; greenCardCooldown = 3; }
+
+            showToast(`✅ 購買成功：${item.name}！`, "#27ae60");
+            updateUI();
+            if (typeof renderShop === "function") renderShop(); // 確保商店介面同步更新數量與按鈕狀態
+        } else {
+            msg("❌ 口袋現金不足以購買！", "#e74c3c");
+        }
+    }
+
+    // --- 類型 B：Buff 道具 (不可重複購買) ---
+    else if (item.type === 'buff') {
+        if (hasItem(itemId)) {
+            msg("⚠️ 已經擁有這個道具囉！", "#f39c12");
+            return;
+        }
+
+        if (cash >= actualCost) {
+            cash -= actualCost;
+            ownedItems.push(itemId);
+            showToast(`🛍️ 成功購買道具：${item.name}！`, '#2ecc71');
+            updateUI();
+        } else {
+            msg("❌ 口袋現金不足以購買此道具！", "#e74c3c");
+        }
+    } 
+
+    // --- 類型 C：刮刮樂 (機率中獎) ---
+    else if (item.id === 'item_scratch') {
+        if (scratchTicketsLeft <= 0) {
+            msg("⏳ 這批刮刮樂已經賣完囉，請等下一次補貨！", "#f39c12");
+            return;
+        }
+        if (cash >= actualCost) {
+            cash -= actualCost;
+            scratchTicketsLeft--;
+            
+            let roll = Math.random();
+            let winAmt = 0;
+            let msgText = "";
+            let color = "";
+            
+            // 獎金機率邏輯 (維持原樣)
+            if (roll < 0.005) { 
+                winAmt = 3000; msgText = "🎉 太神啦！刮中特獎 $3,000！"; color = "#e74c3c"; 
+            } else if (roll < 0.035) { 
+                winAmt = 1000; msgText = "✨ 恭喜！刮中頭獎 $1,000！"; color = "#e67e22"; 
+            } else if (roll < 0.135) { 
+                winAmt = 500; msgText = "💎 運氣不錯！刮中貳獎 $500！"; color = "#f1c40f"; 
+            } else if (roll < 0.385) { 
+                winAmt = 200; msgText = "💰 刮中參獎 $200！"; color = "#2ecc71"; 
+            } else { 
+                winAmt = 100; msgText = "🧧 普獎 $100，再接再厲！"; color = "#95a5a6"; 
+            }
+            
+            cash += winAmt;
+            showToast(msgText, color);
+            updateUI(); 
+        } else {
+            msg("❌ 口袋現金不足以購買刮刮樂！", "#e74c3c");
+        }
+    }
+}
+let boxOpened = false;
+let boxRewards = [0, 0, 0];
+
+function openWorkModal() {
+    if (isPaused) {
+        msg("⏸️ 遊戲暫停中，無法打工喔！", "#f39c12");
+        return;
+    }
+    if (hasWorkedThisTurn) {
+        msg("⚠️ 現在是休息時間！請等冷卻完畢。", "#f39c12");
+        return;
+    }
+    boxOpened = false; 
+    document.getElementById('workModal').style.display = 'flex';
+    document.getElementById('workResult').style.display = 'none';
+    document.getElementById('workTime').innerText = "選擇一個盲盒，看看這次打工賺多少！";
+    
+    let scale = Math.max(1, Math.ceil(getGrossAssets() / 50000));
+    for(let i=0; i<3; i++) {
+        boxRewards[i] = (Math.floor(Math.random() * 401) + 100) * scale;
+        if(hasItem("item_luck")) boxRewards[i] = (Math.floor(Math.random() * 201) + 400) * scale;
+    }
+    
+    for(let i=0; i<3; i++) {
+        let b = document.getElementById('box'+i);
+        b.className = 'mystery-box';
+        b.innerHTML = `📦<br>盲盒 ${i+1}`;
+        b.style.background = "#8e44ad"; 
+        b.style.transform = "none";
+    }
+}
+
+function selectBox(idx) {
+    if (boxOpened) return; 
+    
+    boxOpened = true; 
+    hasWorkedThisTurn = true;
+    let reward = boxRewards[idx];
+    
+    for(let i=0; i<3; i++) {
+        let b = document.getElementById('box'+i);
+        if(i === idx) {
+            b.className = 'mystery-box active';
+            b.innerHTML = `💰<br>$${boxRewards[i].toLocaleString()}`;
+            b.style.background = "#27ae60";
+        } else {
+            b.className = 'mystery-box disabled';
+            b.innerHTML = `💸<br>$${boxRewards[i].toLocaleString()}`;
+            b.style.background = "#95a5a6";
+        }
+    }
+    
+    document.getElementById('workTime').innerText = "打工結束！";
+    document.getElementById('workResultText').innerText = `🎉 恭喜獲得打工薪水 $${reward.toLocaleString()}！`;
+    document.getElementById('workResult').style.display = 'block';
+    
+    cash += reward;
+    updateUI();
+}
+
+function closeWorkModal() {
+    document.getElementById('workModal').style.display = 'none';
+}
+// ================= 占卜小遊戲邏輯 =================
+function createDivinationGrid() {
+    const grid = document.getElementById('divinationGrid');
+    grid.innerHTML = '';
+    for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'div-cell';
+        cell.onclick = () => revealDivination(i);
+        grid.appendChild(cell);
+    }
+}
+
+function startDivination() {
+    if (divinationPlaysLeft <= 0) {
+        msg("⏳ 本期占卜次數已耗盡，請等待命運之輪重新轉動 (每3回合)！", "#e74c3c");
+        return;
+    }
+    
+    let fee = parseInt(document.getElementById('divinationEntryFee').value) || 0;
+    if (fee < 500) return msg("❌ 投注金額至少需 $500！", "#e74c3c");
+    if (fee > 2000) return msg("❌ 能量過於強大！投注金額上限為 $2000！", "#e74c3c");
+    if (cash < fee) return msg("❌ 手邊現金不足！", "#e74c3c");
+
+    cash -= fee;
+    divinationPlaysLeft--;
+    divinationEntryFee = fee;
+    isDivinationActive = true;
+    divinationRevealedCount = 0;
+    divinationCurrentMulti = 1.0;
+    divinationMines = [];
+
+    // 隨機生成 3 張死神牌
+    while (divinationMines.length < 3) {
+        let r = Math.floor(Math.random() * 9);
+        if (!divinationMines.includes(r)) divinationMines.push(r);
+    }
+
+    createDivinationGrid();
+    document.getElementById('startDivBtn').style.display = 'none';
+    document.getElementById('divinationEntryFee').disabled = true;
+    
+    const cb = document.getElementById('cashoutDivBtn');
+    cb.style.display = 'block';
+    cb.disabled = true;
+    
+    document.getElementById('divCurrentWin').innerText = "連結中...";
+    document.getElementById('divCurrentWin').style.color = "var(--title-gold)";
+    
+    updateDivinationDisplay();
+    updateUI(); // 更新畫面上方總資產現金
+}
+
+function revealDivination(idx) {
+    if (!isDivinationActive) return;
+    const cells = document.querySelectorAll('.div-cell');
+    if (cells[idx].classList.contains('revealed')) return;
+
+    cells[idx].classList.add('revealed');
+    cells[idx].innerHTML = "";
+
+    if (divinationMines.includes(idx)) {
+        endDivination(false, idx);
+    } else {
+        divinationRevealedCount++;
+        const stepProb = (9 - (divinationRevealedCount - 1) - 3) / (9 - (divinationRevealedCount - 1));
+        divinationCurrentMulti = divinationCurrentMulti * (1 / stepProb) * Math.pow(DIVINATION_RTP, 1/6); 
+
+        cells[idx].classList.add('treasure');
+        cells[idx].innerHTML = '<span style="font-size:30px">☀️</span><div class="card-label">太陽</div>';
+        
+        document.getElementById('cashoutDivBtn').disabled = false;
+        updateDivinationDisplay();
+
+        if (divinationRevealedCount === 6) endDivination(true);
+    }
+}
+
+function updateDivinationDisplay() {
+    const win = Math.floor(divinationEntryFee * divinationCurrentMulti);
+    document.getElementById('divCurrentWin').innerText = `金錢回饋: $${win}`;
+    document.getElementById('cashoutDivBtn').innerText = `收回金錢 $${win}`;
+    document.getElementById('divPlaysLeft').innerText = divinationPlaysLeft;
+    
+    // 將判斷條件改為 < 6，因為 6 已經是最大值，不用再計算下一張的預兆
+    if (divinationRevealedCount < 6) {
+        const nextProb = (9 - divinationRevealedCount - 3) / (9 - divinationRevealedCount);
+        const nextMulti = divinationCurrentMulti * (1 / nextProb) * Math.pow(DIVINATION_RTP, 1/6);
+        document.getElementById('divNextMulti').innerText = `下一張牌預兆: x${nextMulti.toFixed(2)}`;
+    } else {
+        document.getElementById('divNextMulti').innerText = `已洞悉所有未來 (最高倍率: x${divinationCurrentMulti.toFixed(2)})`;
+    }
+}
+
+function cashOutDivination() {
+    if (!isDivinationActive) return;
+    let win = Math.floor(divinationEntryFee * divinationCurrentMulti);
+    cash += win;
+    msg(`✨ 儀式平安終結，獲得 $${win.toLocaleString()}`, "#fbc531");
+    
+    // 傳入第二個參數 true，告訴系統「錢已經發過了，不用再自動發」
+    endDivination(true, true);
+    updateUI();
+}
+
+// 新增 alreadyPaid 參數，預設為 false
+function endDivination(isWin, alreadyPaid = false) {
+    isDivinationActive = false;
+    const cells = document.querySelectorAll('.div-cell');
+    
+    // 翻開所有死神牌
+    divinationMines.forEach(m => {
+        if(cells[m]) {
+            cells[m].classList.add('revealed', 'mine');
+            cells[m].innerHTML = '<span style="font-size:30px">💀</span><div class="card-label">死神</div>';
+        }
+    });
+
+    const statusText = document.getElementById('divCurrentWin');
+    if (!isWin) {
+        statusText.innerText = "⚡ 終結與重生 (爆掉)";
+        statusText.style.color = "#ff4757";
+        msg("💀 抽中死神，投入的資金消散了...", "#ff4757");
+    } else {
+        if (divinationRevealedCount === 6) {
+            statusText.innerText = "🌟 命運主宰者";
+            statusText.style.color = "#4cd137";
+            
+            // ========== 新增：自動發放最高獎金邏輯 ==========
+            // 如果是翻開第6張牌自動觸發（而非點擊收回金錢按鈕），則在此發放獎金
+            if (!alreadyPaid) {
+                let win = Math.floor(divinationEntryFee * divinationCurrentMulti);
+                cash += win;
+                msg(`🌟 達成命運主宰者！自動獲得最高獎金 $${win.toLocaleString()}！`, "#f1c40f");
+                updateUI(); // 確保畫面上方的總資產即時更新
+            }
+            // =================================================
+        } else {
+            statusText.innerText = "🕯️ 儀式已平安終結";
+            statusText.style.color = "#4cd137";
+        }
+    }
+
+    document.getElementById('startDivBtn').style.display = 'block';
+    document.getElementById('cashoutDivBtn').style.display = 'none';
+    document.getElementById('divinationEntryFee').disabled = false;
+}
+
+// 新增：使用紅綠卡的邏輯
+function applyCard(type) {
+    if (type === 'red') {
+        if (redCardCount <= 0) {
+            msg("❌ 你沒有做多紅卡！", "#e74c3c");
+            return;
+        }
+        if (activeRedCardStock === curIdx) {
+            msg("⚠️ 這支股票已經使用了紅卡！", "#f39c12"); return;
+        }
+        if (activeGreenCardStock === curIdx) {
+            msg("⚠️ 這支股票已經被使用綠卡，無法同時做多！", "#f39c12"); return;
+        }
+        redCardCount--;
+        activeRedCardStock = curIdx;
+        msg(`🟥 已對 ${STOCKS[curIdx].name} 使用做多紅卡！下回合必定上漲！`, "#e74c3c");
+    } else if (type === 'green') {
+        if (greenCardCount <= 0) {
+            msg("❌ 你沒有做空綠卡！", "#e74c3c");
+            return;
+        }
+        if (activeGreenCardStock === curIdx) {
+            msg("⚠️ 這支股票已經使用了綠卡！", "#f39c12"); return;
+        }
+        if (activeRedCardStock === curIdx) {
+            msg("⚠️ 這支股票已經被使用紅卡，無法同時做空！", "#f39c12"); return;
+        }
+        greenCardCount--;
+        activeGreenCardStock = curIdx;
+        msg(`🟩 已對 ${STOCKS[curIdx].name} 使用做空綠卡！下回合必定下跌！`, "#27ae60");
+    }
+    
+    // 如果剛好在商店頁面，更新剩餘數量顯示
+    if (typeof renderShop === "function" && document.getElementById('shopTab').style.display === 'block') {
+        renderShop();
+    }
+}
